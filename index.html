@@ -110,26 +110,19 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
   min-width:max-content;
 }
 
-/* GLOWING SPINE — grows from center */
+/* GLOWING SPINE */
 .tl-spine {
   position:absolute; top:50%; height:2px;
   transform:translateY(-50%); pointer-events:none; z-index:0;
-  /* starts at center, grows left and right */
-  left:50%; right:50%; width:0;
+  left:0; right:0;
   background:linear-gradient(to right,transparent,#8b0000 2%,#c0392b 50%,#8b0000 98%,transparent);
   box-shadow: 0 0 8px #8b0000, 0 0 20px #8b000066, 0 0 40px #8b000033;
-  transition: left 1s cubic-bezier(.4,0,.2,1), right 1s cubic-bezier(.4,0,.2,1);
+  animation:spineGlow 3s ease-in-out infinite;
 }
-#tlOverlay.vis .tl-spine {
-  left:0; right:0;
-}
-
-/* pulse glow animation on spine */
 @keyframes spineGlow {
   0%,100% { box-shadow:0 0 8px #8b0000,0 0 20px #8b000066,0 0 40px #8b000033; }
-  50% { box-shadow:0 0 12px #c0392b,0 0 30px #8b000099,0 0 60px #8b000055; }
+  50% { box-shadow:0 0 16px #c0392b,0 0 36px #8b000099,0 0 70px #8b000055; }
 }
-#tlOverlay.vis .tl-spine { animation:spineGlow 3s ease-in-out infinite; }
 
 /* Node */
 .tl-node {
@@ -384,18 +377,18 @@ const TC={crime:"#c0392b",arrest:"#2471a3",escape:"#d35400",trial:"#1e8449"};
 const TL={crime:"Murder / Crime",arrest:"Arrest",escape:"Escape",trial:"Trial / Execution"};
 
 const IMG={
-  bundy80:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Ted_Bundy_mug_shot.jpg/320px-Ted_Bundy_mug_shot.jpg",
-  bundy78:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ted_Bundy_headshot.jpg/320px-Ted_Bundy_headshot.jpg",
-  seattle:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Seattle_Kerry_Park_Skyline.jpg/320px-Seattle_Kerry_Park_Skyline.jpg",
-  sammamish:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Lake_Sammamish_State_Park_in_Issaquah%2C_Washington.jpg/320px-Lake_Sammamish_State_Park_in_Issaquah%2C_Washington.jpg",
-  slc:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Salt_Lake_City_Skyline_at_Dusk_-_Cropped.jpg/320px-Salt_Lake_City_Skyline_at_Dusk_-_Cropped.jpg",
-  aspen:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Aspen_mountain_from_town.jpg/320px-Aspen_mountain_from_town.jpg",
-  glenwood:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Glenwood_Springs_Colorado_2007.jpg/320px-Glenwood_Springs_Colorado_2007.jpg",
-  fsu:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Florida_State_University_-_Westcott_Building.jpg/320px-Florida_State_University_-_Westcott_Building.jpg",
-  pensacola:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Pensacola_FL_downtownaerial01.jpg/320px-Pensacola_FL_downtownaerial01.jpg",
-  miami:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Miami_collage_20101103_edit.jpg/320px-Miami_collage_20101103_edit.jpg",
-  orlando:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Orlando_Florida_Skyline_2013.jpg/320px-Orlando_Florida_Skyline_2013.jpg",
-  prison:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Florida_State_Prison.jpg/320px-Florida_State_Prison.jpg",
+  bundy80:"https://live.staticflickr.com/65535/51205876892_f1c5d0e5c6_n.jpg",
+  bundy78:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Ted_Bundy_mug_shot.jpg",
+  seattle:"https://images.unsplash.com/photo-1502175353174-a7a70e73b362?w=400&q=80",
+  sammamish:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
+  slc:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80",
+  aspen:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80",
+  glenwood:"https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&q=80",
+  fsu:"https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=80",
+  pensacola:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+  miami:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80",
+  orlando:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80",
+  prison:"https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&q=80",
 };
 
 const events=[
