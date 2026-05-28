@@ -6,437 +6,585 @@
 <title>Ted Bundy — Interactive Crime Timeline</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; background: #000; color: #e0e0e0; font-family: 'Courier Prime', monospace; overflow: hidden; }
-.screen { position: fixed; inset: 0; display: none; }
-.screen.active { display: flex; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Prime',monospace; overflow:hidden; }
+.screen { position:fixed; inset:0; display:none; }
+.screen.active { display:flex; }
 
-/* ══ INTRO ══ */
+/* ══ PAGE 1 — INTRO ══ */
 #introScreen { background:#000; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
 .intro-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,#2d0000 0%,transparent 60%); animation:breathe 5s ease-in-out infinite; }
 @keyframes breathe { 0%,100%{opacity:.4} 50%{opacity:.9} }
 .grain { position:absolute; inset:0; pointer-events:none; opacity:.035; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .intro-content { position:relative; z-index:10; text-align:center; padding:0 24px; }
-.intro-title { font-family:'Playfair Display',serif; font-size:clamp(64px,11vw,120px); font-weight:400; color:#f0f0f0; line-height:1; letter-spacing:-3px; opacity:0; animation:up 1.2s ease .3s forwards; text-shadow:0 0 80px #8b000033; }
+.intro-label { font-size:9px; letter-spacing:6px; color:#1e1e1e; text-transform:uppercase; margin-bottom:32px; opacity:0; animation:up 1s ease .2s forwards; }
+.intro-title { font-family:'Playfair Display',serif; font-size:clamp(64px,11vw,120px); font-weight:400; color:#f0f0f0; line-height:1; letter-spacing:-3px; opacity:0; animation:up 1.2s ease .7s forwards, flick 8s 3s infinite; text-shadow:0 0 80px #8b000033; }
 .intro-title em { color:#8b0000; font-style:normal; }
-.flicker { animation:up 1.2s ease .3s forwards,flicker 8s 2s infinite; }
-@keyframes flicker { 0%,94%,96.5%,100%{opacity:1} 95%{opacity:.2} 96%{opacity:.9} }
-.intro-rule { width:0; height:1px; background:#8b0000; margin:28px auto; animation:rule 1.2s ease 1.2s forwards; }
-@keyframes rule { to{width:80px} }
-.intro-dates { font-size:11px; letter-spacing:6px; color:#777; text-transform:uppercase; opacity:0; animation:up 1s ease 1.6s forwards; }
-.intro-byline { margin-top:48px; font-size:10px; letter-spacing:4px; color:#555; text-transform:uppercase; opacity:0; animation:up 1s ease 2s forwards; }
-.intro-byline span { color:#999; }
-.intro-powered { margin-top:10px; font-size:10px; letter-spacing:2px; color:#555; opacity:0; animation:up 1s ease 2.2s forwards; }
-.intro-powered span { color:#888; }
-.intro-btn { margin-top:52px; padding:13px 52px; background:transparent; border:1px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s ease; opacity:0; animation:up 1s ease 2.6s forwards; }
+@keyframes flick { 0%,94%,96.5%,100%{opacity:1} 95%{opacity:.2} 96%{opacity:.9} }
+.intro-rule { width:0; height:1px; background:#8b0000; margin:28px auto; animation:growW 1.2s ease 1.5s forwards; }
+.intro-dates { font-size:11px; letter-spacing:6px; color:#555; text-transform:uppercase; opacity:0; animation:up 1s ease 1.9s forwards; }
+.intro-by { margin-top:44px; font-size:10px; letter-spacing:4px; color:#333; text-transform:uppercase; opacity:0; animation:up 1s ease 2.3s forwards; }
+.intro-by span { color:#777; }
+.intro-powered { margin-top:8px; font-size:9px; letter-spacing:2px; color:#1e1e1e; opacity:0; animation:up 1s ease 2.6s forwards; }
+.intro-powered span { color:#333; }
+.intro-btn { margin-top:52px; padding:13px 52px; background:transparent; border:1px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s; opacity:0; animation:up 1s ease 3s forwards; }
 .intro-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 40px #8b000055; }
 @keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes growW { to{width:80px} }
 
-/* ══ DRAMATIC ══ */
+/* ══ PAGE 2 — DRAMATIC ══ */
 #dramaticScreen { background:#000; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; opacity:0; transition:opacity .8s ease; }
 #dramaticScreen.fade-in { opacity:1; }
-.dramatic-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,#1a0000 0%,#000 70%); }
-.dramatic-content { position:relative; z-index:10; text-align:center; max-width:680px; padding:0 32px; }
-.dramatic-line { font-size:13px; letter-spacing:3px; color:#666; text-transform:uppercase; margin-bottom:48px; opacity:0; }
-.dramatic-stat { font-family:'Playfair Display',serif; font-size:clamp(15px,2.5vw,20px); color:#999; line-height:2.4; margin-bottom:44px; opacity:0; }
-.dramatic-stat .num { color:#c0392b; font-size:1.4em; }
-.dramatic-stat .em { color:#ddd; font-style:italic; }
-.dramatic-final { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(22px,4vw,38px); color:#ddd; line-height:1.5; opacity:0; text-shadow:0 0 40px #8b000044; }
-.dramatic-final span { color:#8b0000; }
-.dramatic-rule { width:0; height:1px; background:#8b0000; margin:44px auto; }
-.dramatic-btn { margin-top:52px; padding:13px 52px; background:transparent; border:1px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s ease; opacity:0; }
-.dramatic-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 40px #8b000055; }
+.dram-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,#1a0000 0%,#000 70%); }
+.dram-content { position:relative; z-index:10; text-align:center; max-width:700px; padding:0 32px; }
+.dram-eyebrow { font-size:9px; letter-spacing:6px; color:#3a0000; text-transform:uppercase; opacity:0; }
+.dram-stat { font-family:'Playfair Display',serif; font-size:clamp(14px,2.2vw,20px); color:#888; line-height:2.8; opacity:0; }
+.dram-stat .n { color:#c0392b; font-size:1.4em; }
+.dram-stat .em { color:#ddd; font-style:italic; }
+.dram-rule { width:0; height:1px; background:#8b0000; margin:40px auto; }
+.dram-final { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(18px,3vw,32px); color:#ccc; line-height:1.7; opacity:0; }
+.dram-final span { color:#8b0000; }
+.dram-btn { margin-top:52px; padding:13px 52px; background:transparent; border:1px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s; opacity:0; }
+.dram-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 40px #8b000055; }
 
-/* ══ MAP SCREEN ══ */
-#appScreen { flex-direction:column; }
-#map { position:absolute; top:57px; left:0; right:0; bottom:0; }
+/* ══ PAGE 3 — MAP ══ */
+#appScreen { flex-direction:column; z-index:1; }
+#map { position:absolute; inset:0; z-index:1; }
 
-.topbar { position:absolute; top:0; left:0; right:0; z-index:500; background:rgba(0,0,0,0.96); border-bottom:1px solid #222; display:flex; align-items:center; justify-content:space-between; padding:11px 22px; }
-.topbar-left h1 { font-size:11px; letter-spacing:4px; color:#8b0000; text-transform:uppercase; font-weight:normal; }
-.topbar-left p { font-size:9px; color:#666; letter-spacing:2px; margin-top:2px; }
-.topbar-right { display:flex; gap:8px; align-items:center; }
-.topbar-btn { padding:7px 16px; background:transparent; border:1px solid #333; color:#777; font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all .2s; }
-.topbar-btn:hover { border-color:#8b0000; color:#8b0000; }
-.powered-tag { font-size:9px; letter-spacing:1px; color:#555; }
-.powered-tag span { color:#888; }
+.topbar { position:absolute; top:0; left:0; right:0; z-index:500; background:rgba(0,0,0,0.92); border-bottom:1px solid #111; display:flex; align-items:center; justify-content:space-between; padding:11px 22px; }
+.tb-left h1 { font-size:11px; letter-spacing:4px; color:#8b0000; text-transform:uppercase; font-weight:normal; }
+.tb-left p { font-size:9px; color:#444; letter-spacing:2px; margin-top:2px; }
+.tb-right { display:flex; gap:8px; align-items:center; }
+.tb-powered { font-size:8px; letter-spacing:1px; color:#222; }
+.tb-powered span { color:#3a3a3a; }
+.tb-btn { padding:7px 16px; background:transparent; border:1px solid #1a1a1a; color:#444; font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all .2s; }
+.tb-btn:hover,.tb-btn.on { border-color:#8b0000; color:#8b0000; }
 
-.legend { position:absolute; bottom:28px; left:20px; z-index:500; background:rgba(0,0,0,0.92); border:1px solid #222; padding:14px 18px; }
-.legend-title { font-size:8px; letter-spacing:4px; color:#666; text-transform:uppercase; margin-bottom:12px; }
-.legend-item { display:flex; align-items:center; gap:10px; margin-bottom:7px; font-size:11px; color:#777; }
-.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.legend-dot-sm { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.legend-divider { height:1px; background:#1a1a1a; margin:8px 0; }
-.murder-count { margin-top:10px; font-size:9px; color:#555; letter-spacing:1px; }
-.murder-count span { color:#8b0000; }
+.legend { position:absolute; bottom:28px; left:20px; z-index:500; background:rgba(0,0,0,0.88); border:1px solid #111; padding:13px 17px; }
+.leg-title { font-size:7px; letter-spacing:4px; color:#333; text-transform:uppercase; margin-bottom:10px; }
+.leg-item { display:flex; align-items:center; gap:9px; margin-bottom:7px; font-size:10px; color:#444; }
+.leg-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.leg-div { height:1px; background:#0f0f0f; margin:8px 0; }
+.leg-count { font-size:8px; color:#2a2a2a; letter-spacing:1px; }
+.leg-count span { color:#8b0000; }
 
-.timeline-panel { position:absolute; top:57px; right:0; bottom:0; z-index:500; width:290px; background:rgba(0,0,0,0.97); border-left:1px solid #1a1a1a; transform:translateX(100%); transition:transform .4s ease; display:flex; flex-direction:column; }
-.timeline-panel.open { transform:translateX(0); }
-.tl-header { padding:14px 18px; border-bottom:1px solid #1a1a1a; }
-.tl-header-title { font-size:8px; letter-spacing:4px; color:#666; text-transform:uppercase; }
-.tl-header-sub { font-size:9px; color:#444; margin-top:4px; }
-.tl-header-sub span { color:#8b0000; }
-.tl-scroll { flex:1; overflow-y:auto; padding:4px 0; }
-.tl-scroll::-webkit-scrollbar { width:2px; }
-.tl-scroll::-webkit-scrollbar-thumb { background:#222; }
-.tl-event { padding:11px 18px; cursor:pointer; border-left:2px solid transparent; transition:all .15s; }
-.tl-event:hover { background:#080808; }
-.tl-event.active { border-left-color:#8b0000; background:#080808; }
-.tl-year { font-size:8px; color:#555; letter-spacing:2px; }
-.tl-name { font-size:11px; color:#bbb; margin-top:3px; }
-.tl-loc { font-size:9px; color:#555; margin-top:2px; }
-.tl-badge { display:inline-block; margin-top:5px; font-size:7px; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; }
+/* ══ TIMELINE OVERLAY — TRANSPARENT, ONE WITH THE SCREEN ══ */
+#tlOverlay {
+  position:absolute; inset:0; z-index:700;
+  display:none; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .4s ease;
+  pointer-events:none;
+}
+#tlOverlay.open { display:flex; pointer-events:all; }
+#tlOverlay.vis { opacity:1; }
 
-.detail-card { position:absolute; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); z-index:500; width:560px; max-width:calc(100vw - 40px); background:rgba(0,0,0,0.98); border:1px solid #1a1a1a; border-top:2px solid #8b0000; opacity:0; pointer-events:none; transition:all .3s ease; max-height:68vh; display:flex; flex-direction:column; }
-.detail-card.visible { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
-.detail-card.murder-card { border-top-color:#6b0000; }
-.detail-header { padding:20px 24px 0; flex-shrink:0; }
-.detail-close { position:absolute; top:12px; right:16px; background:none; border:none; color:#555; font-size:15px; cursor:pointer; transition:color .2s; }
-.detail-close:hover { color:#fff; }
-.detail-type { font-size:8px; letter-spacing:4px; text-transform:uppercase; margin-bottom:6px; }
-.detail-title { font-family:'Playfair Display',serif; font-size:21px; color:#f0f0f0; font-weight:400; }
-.detail-meta { font-size:9px; color:#555; letter-spacing:2px; margin-top:4px; text-transform:uppercase; margin-bottom:14px; }
-.detail-body-wrap { overflow-y:auto; padding:0 24px 20px; flex:1; }
-.detail-body-wrap::-webkit-scrollbar { width:2px; }
-.detail-body-wrap::-webkit-scrollbar-thumb { background:#222; }
-.detail-photos { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; }
-.detail-photos::-webkit-scrollbar { height:2px; }
-.detail-photo { flex-shrink:0; width:90px; height:68px; object-fit:cover; filter:grayscale(100%) brightness(.65); border:1px solid #1a1a1a; transition:filter .3s; cursor:pointer; }
-.detail-photo:hover { filter:grayscale(40%) brightness(.9); }
-.detail-body { font-size:13px; color:#999; line-height:2; }
-.detail-victims { margin-top:14px; padding-top:14px; border-top:1px solid #111; }
-.detail-victims-label { font-size:8px; letter-spacing:3px; color:#555; text-transform:uppercase; margin-bottom:5px; }
-.detail-victims-list { font-size:12px; color:#888; line-height:1.8; font-style:italic; }
+/* Close btn — top right, floating */
+.tl-close-btn {
+  position:absolute; top:68px; right:24px; z-index:10;
+  background:none; border:none; color:#333; font-size:20px;
+  cursor:pointer; transition:color .2s; letter-spacing:2px;
+  font-family:'Courier Prime',monospace;
+}
+.tl-close-btn:hover { color:#8b0000; }
 
-/* Murder popup */
-.murder-popup { background:#0a0000 !important; border:1px solid #3a0000 !important; border-radius:0 !important; padding:10px 14px !important; font-family:'Courier Prime',monospace !important; }
-.murder-popup .leaflet-popup-content-wrapper { background:#0a0000; border:1px solid #3a0000; border-radius:0; box-shadow:0 0 20px #8b000033; }
+/* Horizontal scroll */
+.tl-h-wrap {
+  width:100%; height:100%;
+  overflow-x:auto; overflow-y:hidden;
+  display:flex; align-items:center;
+  padding:0;
+  scrollbar-width:none;
+}
+.tl-h-wrap::-webkit-scrollbar { display:none; }
+
+/* Track */
+.tl-track {
+  position:relative; height:100%;
+  display:flex; align-items:center;
+  padding:0 80px; min-width:max-content;
+  gap:0;
+}
+
+/* The center spine — just a line, no container */
+.tl-spine {
+  position:absolute; top:50%; left:0; right:0; height:1px;
+  background:linear-gradient(to right, transparent 0%, #8b0000 3%, #8b0000 97%, transparent 100%);
+  transform:translateY(-50%); pointer-events:none; z-index:0;
+}
+
+/* Year label on spine */
+.tl-year-label {
+  position:absolute; top:50%; transform:translateY(10px);
+  font-size:8px; letter-spacing:2px; color:#8b000088;
+  pointer-events:none; z-index:1; white-space:nowrap;
+}
+
+/* Each node */
+.tl-node {
+  position:relative; display:flex; flex-direction:column;
+  align-items:center; cursor:pointer; margin:0 36px;
+  z-index:2;
+}
+/* above = card on top */
+.tl-node.above { justify-content:flex-end; align-self:flex-start; height:50%; padding-bottom:0; }
+/* below = card on bottom */
+.tl-node.below { justify-content:flex-start; align-self:flex-end; height:50%; padding-top:0; flex-direction:column-reverse; }
+
+/* Card — transparent bg, just a subtle dark tint */
+.tl-card {
+  width:160px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(8px);
+  padding:10px 12px 10px;
+  transition:all .2s;
+  border-bottom:1px solid transparent;
+  overflow:hidden;
+}
+.tl-node.above .tl-card { border-bottom:1px solid #8b000033; }
+.tl-node.below .tl-card { border-top:1px solid #8b000033; }
+.tl-node:hover .tl-card,
+.tl-node.sel .tl-card {
+  background:rgba(10,0,0,0.75);
+}
+.tl-node.above:hover .tl-card,
+.tl-node.above.sel .tl-card { border-bottom-color:#8b0000; }
+.tl-node.below:hover .tl-card,
+.tl-node.below.sel .tl-card { border-top-color:#8b0000; }
+
+.tl-card-img { width:100%; height:64px; object-fit:cover; filter:grayscale(90%) brightness(.5); display:block; margin-bottom:8px; transition:filter .3s; }
+.tl-node:hover .tl-card-img { filter:grayscale(50%) brightness(.7); }
+.tl-card-type { font-size:7px; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+.tl-card-year { font-size:7px; color:#333; letter-spacing:1px; margin-bottom:3px; }
+.tl-card-name { font-size:10px; color:#999; line-height:1.4; }
+.tl-card-loc { font-size:7px; color:#333; margin-top:3px; }
+
+/* Connector — vertical line from card to spine dot */
+.tl-conn { width:1px; flex-shrink:0; min-height:40px; }
+.tl-node.above .tl-conn { background:linear-gradient(to bottom, #8b000066, #8b0000cc); }
+.tl-node.below .tl-conn { background:linear-gradient(to top, #8b000066, #8b0000cc); }
+
+/* Spine dot */
+.tl-dot {
+  width:9px; height:9px; border-radius:50%;
+  flex-shrink:0; z-index:3; position:relative;
+  transition:transform .2s, box-shadow .2s;
+}
+.tl-node:hover .tl-dot,
+.tl-node.sel .tl-dot { transform:scale(1.8); }
+
+/* ══ DETAIL CARD ══ */
+.det-card {
+  position:absolute; bottom:28px; left:50%;
+  transform:translateX(-50%) translateY(16px);
+  z-index:800; width:580px; max-width:calc(100vw - 40px);
+  background:rgba(0,0,0,0.97); border:1px solid #1a1a1a; border-top:2px solid #8b0000;
+  opacity:0; pointer-events:none; transition:all .3s ease;
+  display:flex; flex-direction:column; max-height:60vh;
+}
+.det-card.visible { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
+.det-hdr { padding:18px 22px 0; flex-shrink:0; }
+.det-close { position:absolute; top:12px; right:16px; background:none; border:none; color:#333; font-size:15px; cursor:pointer; transition:color .2s; }
+.det-close:hover { color:#fff; }
+.det-type { font-size:7px; letter-spacing:4px; text-transform:uppercase; margin-bottom:6px; }
+.det-title { font-family:'Playfair Display',serif; font-size:20px; color:#f0f0f0; font-weight:400; }
+.det-meta { font-size:9px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-top:3px; margin-bottom:14px; }
+.det-scroll { overflow-y:auto; padding:0 22px 18px; flex:1; }
+.det-scroll::-webkit-scrollbar { width:2px; }
+.det-scroll::-webkit-scrollbar-thumb { background:#1a1a1a; }
+.det-photos { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; }
+.det-photos::-webkit-scrollbar { height:2px; }
+.det-photo { flex-shrink:0; width:100px; height:72px; object-fit:cover; filter:grayscale(70%) brightness(.65); border:1px solid #1a1a1a; cursor:pointer; transition:filter .3s; }
+.det-photo:hover { filter:grayscale(20%) brightness(.9); }
+.det-body { font-size:12px; color:#888; line-height:2; }
+.det-vic { margin-top:12px; padding-top:12px; border-top:1px solid #0f0f0f; }
+.det-vl { font-size:7px; letter-spacing:3px; color:#333; text-transform:uppercase; margin-bottom:5px; }
+.det-vv { font-size:11px; color:#666; line-height:1.8; font-style:italic; }
+
+/* murder popup */
+.murder-popup .leaflet-popup-content-wrapper { background:#060000; border:1px solid #3a0000; border-radius:0; box-shadow:0 0 20px #8b000033; }
 .murder-popup .leaflet-popup-tip { background:#3a0000; }
-.murder-popup .leaflet-popup-content { margin:10px 14px; }
+.murder-popup .leaflet-popup-content { margin:10px 14px; font-family:'Courier Prime',monospace; }
 .mp-name { font-size:12px; color:#ddd; margin-bottom:3px; }
-.mp-date { font-size:9px; color:#666; letter-spacing:1px; }
-.mp-loc { font-size:9px; color:#555; margin-top:2px; }
+.mp-date { font-size:9px; color:#555; letter-spacing:1px; }
+.mp-note { font-size:9px; color:#8b0000; margin-top:3px; font-style:italic; }
 
-#lightbox { display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.97); align-items:center; justify-content:center; flex-direction:column; gap:14px; }
-#lightbox.open { display:flex; }
-#lightbox img { max-width:82vw; max-height:74vh; object-fit:contain; filter:grayscale(50%); }
-#lightbox-caption { font-size:10px; color:#666; letter-spacing:2px; }
-#lightbox-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#666; font-size:22px; cursor:pointer; }
-#lightbox-close:hover { color:#fff; }
+/* lightbox */
+#lb { display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.97); align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+#lb.open { display:flex; }
+#lb-img { max-width:82vw; max-height:74vh; object-fit:contain; filter:grayscale(30%); }
+#lb-cap { font-size:10px; color:#555; letter-spacing:2px; text-align:center; max-width:500px; }
+#lb-x { position:absolute; top:20px; right:24px; background:none; border:none; color:#333; font-size:22px; cursor:pointer; }
+#lb-x:hover { color:#fff; }
 .leaflet-container { background:#000 !important; }
 </style>
 </head>
 <body>
 
-<!-- INTRO -->
+<!-- PAGE 1 -->
 <div class="screen active" id="introScreen">
   <div class="intro-bg"></div>
   <div class="grain"></div>
   <div class="intro-content">
-    <div class="intro-title flicker">Ted <em>Bundy</em></div>
+    <div class="intro-label">6th Period Forensics — Serial Killer Case Study</div>
+    <div class="intro-title">Ted <em>Bundy</em></div>
     <div class="intro-rule"></div>
     <div class="intro-dates">November 24, 1946 &nbsp;—&nbsp; January 24, 1989</div>
-    <div class="intro-byline">By <span>David Valentin</span> &amp; <span>Kahari Bradley</span></div>
+    <div class="intro-by">By <span>David Valentin</span> &amp; <span>Kahari Bradley</span></div>
     <div class="intro-powered">Powered by <span>OpenStreetMap</span> &amp; <span>Leaflet.js</span></div>
     <button class="intro-btn" onclick="goDramatic()">Enter The Case &nbsp;→</button>
   </div>
 </div>
 
-<!-- DRAMATIC -->
+<!-- PAGE 2 -->
 <div class="screen" id="dramaticScreen">
-  <div class="dramatic-bg"></div>
-  <div class="dramatic-content">
-    <div class="dramatic-line" id="d-line">The Case</div>
-    <div class="dramatic-stat" id="d-stat">
-      He was convicted of <span class="num">30</span> murders.<br>
-      Investigators believe the true number exceeded <span class="num">100.</span><br>
+  <div class="dram-bg"></div>
+  <div class="dram-content">
+    <div class="dram-eyebrow" id="de">A Case That Shook America</div>
+    <div class="dram-stat" id="ds">
+      He confessed to <span class="n">30</span> murders.<br>
+      Investigators believe the true number exceeded <span class="n">100.</span><br>
       He escaped custody <span class="em">twice.</span><br>
-      He was active across <span class="num">7</span> states.
+      He operated across <span class="n">7</span> states between 1974 and 1978.
     </div>
-    <div class="dramatic-rule" id="d-rule"></div>
-    <div class="dramatic-final" id="d-final">
+    <div class="dram-rule" id="dr"></div>
+    <div class="dram-final" id="df">
       "He looked like the boy next door.<br>
       <span>That was the most terrifying part."</span>
     </div>
-    <button class="dramatic-btn" id="d-btn" onclick="startApp()">View The Map &nbsp;→</button>
+    <button class="dram-btn" id="db" onclick="startApp()">View The Map &nbsp;→</button>
   </div>
 </div>
 
-<!-- MAP -->
+<!-- PAGE 3 -->
 <div class="screen" id="appScreen">
   <div class="topbar">
-    <div class="topbar-left">
-      <h1>Ted Bundy — Crime Timeline</h1>
-      <p>Active 1974–1978 &nbsp;·&nbsp; 30 confirmed murders mapped &nbsp;·&nbsp; 7 states</p>
+    <div class="tb-left">
+      <h1>Ted Bundy — Interactive Crime Timeline</h1>
+      <p>Active 1974–1978 &nbsp;·&nbsp; 30 confirmed murders &nbsp;·&nbsp; 7 states</p>
     </div>
-    <div class="topbar-right">
-      <div class="powered-tag">Powered by <span>OpenStreetMap</span> &amp; <span>Leaflet.js</span></div>
-      <button class="topbar-btn" onclick="toggleTimeline()">☰ &nbsp;Timeline</button>
+    <div class="tb-right">
+      <div class="tb-powered">Powered by <span>OpenStreetMap</span> &amp; <span>Leaflet.js</span></div>
+      <button class="tb-btn" id="tlBtn" onclick="toggleTL()">☰ &nbsp;Timeline</button>
     </div>
   </div>
 
   <div id="map"></div>
 
   <div class="legend">
-    <div class="legend-title">Map Legend</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#8b0000"></div> Confirmed Murder</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#1a5276"></div> Arrest</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#784212"></div> Escape</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#1e4d2b"></div> Trial / Execution</div>
-    <div class="legend-divider"></div>
-    <div class="murder-count">All <span>30</span> confirmed murders pinned</div>
+    <div class="leg-title">Map Legend</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#8b0000"></div>Confirmed Murder</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1a5276"></div>Arrest</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#784212"></div>Escape</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1e4d2b"></div>Trial / Execution</div>
+    <div class="leg-div"></div>
+    <div class="leg-count">All <span>30</span> confirmed murders pinned</div>
   </div>
 
-  <div class="timeline-panel" id="timelinePanel">
-    <div class="tl-header">
-      <div class="tl-header-title">Key Events Timeline</div>
-      <div class="tl-header-sub"><span>30</span> murder locations visible on map</div>
+  <!-- TIMELINE OVERLAY — no box, just the line floating over map -->
+  <div id="tlOverlay">
+    <button class="tl-close-btn" onclick="toggleTL()">✕ close</button>
+    <div class="tl-h-wrap">
+      <div class="tl-track" id="tlTrack">
+        <div class="tl-spine"></div>
+      </div>
     </div>
-    <div class="tl-scroll" id="timelineScroll"></div>
   </div>
 
-  <div class="detail-card" id="detailCard">
-    <div class="detail-header">
-      <button class="detail-close" onclick="closeDetail()">✕</button>
-      <div class="detail-type" id="dType"></div>
-      <div class="detail-title" id="dTitle"></div>
-      <div class="detail-meta" id="dMeta"></div>
+  <!-- DETAIL CARD -->
+  <div class="det-card" id="detCard">
+    <div class="det-hdr">
+      <button class="det-close" onclick="closeDet()">✕</button>
+      <div class="det-type" id="dType"></div>
+      <div class="det-title" id="dTitle"></div>
+      <div class="det-meta" id="dMeta"></div>
     </div>
-    <div class="detail-body-wrap">
-      <div class="detail-photos" id="dPhotos"></div>
-      <div class="detail-body" id="dBody"></div>
-      <div class="detail-victims" id="dVictims"></div>
+    <div class="det-scroll">
+      <div class="det-photos" id="dPhotos"></div>
+      <div class="det-body" id="dBody"></div>
+      <div class="det-vic" id="dVic" style="display:none"></div>
     </div>
   </div>
 </div>
 
-<div id="lightbox">
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="">
-  <div id="lightbox-caption"></div>
+<!-- LIGHTBOX -->
+<div id="lb">
+  <button id="lb-x" onclick="closeLB()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-cap"></div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── ALL 30 CONFIRMED MURDERS ──
-const murders = [
-  { name:"Joni Lenz", date:"Jan 4, 1974", loc:"Seattle, WA", lat:47.6062, lng:-122.3321, note:"Survived with permanent brain damage" },
-  { name:"Linda Ann Healy", date:"Feb 1, 1974", loc:"Seattle, WA", lat:47.6588, lng:-122.3103 },
-  { name:"Donna Manson", date:"Mar 12, 1974", loc:"Olympia, WA", lat:47.0379, lng:-122.9007 },
-  { name:"Susan Rancourt", date:"Apr 17, 1974", loc:"Ellensburg, WA", lat:46.9965, lng:-120.5478 },
-  { name:"Roberta Parks", date:"May 6, 1974", loc:"Corvallis, OR", lat:44.5646, lng:-123.2620 },
-  { name:"Brenda Ball", date:"Jun 1, 1974", loc:"Burien, WA", lat:47.4760, lng:-122.3465 },
-  { name:"Georgeann Hawkins", date:"Jun 11, 1974", loc:"Seattle, WA", lat:47.6553, lng:-122.3035 },
-  { name:"Janice Ott", date:"Jul 14, 1974", loc:"Lake Sammamish, WA", lat:47.5707, lng:-122.0810 },
-  { name:"Denise Naslund", date:"Jul 14, 1974", loc:"Lake Sammamish, WA", lat:47.5690, lng:-122.0795 },
-  { name:"Nancy Wilcox", date:"Oct 2, 1974", loc:"Holladay, UT", lat:40.6677, lng:-111.8288 },
-  { name:"Melissa Smith", date:"Oct 18, 1974", loc:"Midvale, UT", lat:40.6113, lng:-111.8997 },
-  { name:"Laura Aime", date:"Oct 31, 1974", loc:"Lehi, UT", lat:40.3916, lng:-111.8508 },
-  { name:"Debra Kent", date:"Nov 8, 1974", loc:"Bountiful, UT", lat:40.8893, lng:-111.8808 },
-  { name:"Caryn Campbell", date:"Jan 12, 1975", loc:"Snowmass Village, CO", lat:39.2083, lng:-106.9378 },
-  { name:"Julie Cunningham", date:"Mar 15, 1975", loc:"Vail, CO", lat:39.6433, lng:-106.3781 },
-  { name:"Denise Oliverson", date:"Apr 6, 1975", loc:"Grand Junction, CO", lat:39.0639, lng:-108.5506 },
-  { name:"Lynette Culver", date:"May 6, 1975", loc:"Pocatello, ID", lat:42.8713, lng:-112.4455, note:"Age 12 — youngest confirmed victim" },
-  { name:"Susan Curtis", date:"Jun 28, 1975", loc:"Provo, UT", lat:40.2338, lng:-111.6585 },
-  { name:"Unknown Victim #1", date:"1974", loc:"Oregon", lat:44.1, lng:-121.5 },
-  { name:"Unknown Victim #2", date:"1974", loc:"Washington", lat:47.2, lng:-121.8 },
-  { name:"Unknown Victim #3", date:"1975", loc:"Colorado", lat:39.5, lng:-105.7 },
-  { name:"Unknown Victim #4", date:"1975", loc:"Utah", lat:40.5, lng:-111.5 },
-  { name:"Unknown Victim #5", date:"1975", loc:"Idaho", lat:43.5, lng:-114.0 },
-  { name:"Unknown Victim #6", date:"1976", loc:"Florida", lat:30.2, lng:-85.0 },
-  { name:"Lisa Levy", date:"Jan 15, 1978", loc:"Tallahassee, FL", lat:30.4420, lng:-84.2968 },
-  { name:"Margaret Bowman", date:"Jan 15, 1978", loc:"Tallahassee, FL", lat:30.4410, lng:-84.2975 },
-  { name:"Cheryl Thomas", date:"Jan 15, 1978", loc:"Tallahassee, FL", lat:30.4400, lng:-84.2900, note:"Survived but left with permanent hearing loss" },
-  { name:"Kimberly Leach", date:"Feb 9, 1978", loc:"Lake City, FL", lat:30.1897, lng:-82.6382, note:"Age 12 — his final known murder" },
-  { name:"Unknown Victim #7", date:"1978", loc:"Florida", lat:29.8, lng:-82.3 },
-  { name:"Unknown Victim #8", date:"1978", loc:"Florida", lat:30.5, lng:-84.5 },
+const TC={crime:"#c0392b",arrest:"#2471a3",escape:"#d35400",trial:"#1e8449"};
+const TL={crime:"Murder / Crime",arrest:"Arrest",escape:"Escape",trial:"Trial / Execution"};
+
+const IMG={
+  bundy80:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Ted_Bundy_mug_shot.jpg/320px-Ted_Bundy_mug_shot.jpg",
+  bundy78:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ted_Bundy_headshot.jpg/320px-Ted_Bundy_headshot.jpg",
+  seattle:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Seattle_Kerry_Park_Skyline.jpg/320px-Seattle_Kerry_Park_Skyline.jpg",
+  sammamish:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Lake_Sammamish_State_Park_in_Issaquah%2C_Washington.jpg/320px-Lake_Sammamish_State_Park_in_Issaquah%2C_Washington.jpg",
+  slc:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Salt_Lake_City_Skyline_at_Dusk_-_Cropped.jpg/320px-Salt_Lake_City_Skyline_at_Dusk_-_Cropped.jpg",
+  aspen:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Aspen_mountain_from_town.jpg/320px-Aspen_mountain_from_town.jpg",
+  glenwood:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Glenwood_Springs_Colorado_2007.jpg/320px-Glenwood_Springs_Colorado_2007.jpg",
+  fsu:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Florida_State_University_-_Westcott_Building.jpg/320px-Florida_State_University_-_Westcott_Building.jpg",
+  pensacola:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Pensacola_FL_downtownaerial01.jpg/320px-Pensacola_FL_downtownaerial01.jpg",
+  miami:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Miami_collage_20101103_edit.jpg/320px-Miami_collage_20101103_edit.jpg",
+  orlando:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Orlando_Florida_Skyline_2013.jpg/320px-Orlando_Florida_Skyline_2013.jpg",
+  prison:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Florida_State_Prison.jpg/320px-Florida_State_Prison.jpg",
+};
+
+const events=[
+  {id:1,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",thumb:IMG.seattle,
+   photos:[{src:IMG.bundy78,cap:"Ted Bundy — custody photo, 1978 (Florida State Archive, Public Domain)"},{src:IMG.seattle,cap:"Seattle, WA — where Bundy's killing spree began"}],
+   body:"On January 4, 1974, Bundy attacked 21-year-old Joni Lenz in her Seattle basement bedroom, beating her with a metal rod. She survived with permanent brain damage. His first confirmed murder was Lynda Ann Healy, a University of Washington student, abducted February 1, 1974. Bundy posed as an injured man with his arm in a sling, asking women for help before overpowering them at his tan VW Beetle.",
+   victims:"Joni Lenz (survived), Linda Ann Healy, Donna Manson, Susan Rancourt, Roberta Parks, Brenda Ball, Georgeann Hawkins"},
+  {id:2,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",thumb:IMG.sammamish,
+   photos:[{src:IMG.sammamish,cap:"Lake Sammamish State Park — where Bundy abducted two women in broad daylight"}],
+   body:"In one of his most brazen acts, Bundy abducted two women from a crowded public beach on the same afternoon — introducing himself as 'Ted' and asking for help with his sailboat. Multiple witnesses gave investigators their first real description of the suspect. Both women were murdered, their remains found months later on a hillside east of Seattle.",
+   victims:"Janice Ott, Denise Naslund"},
+  {id:3,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",thumb:IMG.slc,
+   photos:[{src:IMG.slc,cap:"Salt Lake City, Utah — where Bundy enrolled in law school"},{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Public Domain)"}],
+   body:"After relocating to attend the University of Utah Law School, Bundy continued his killing spree across Utah, Colorado, and Idaho. He murdered at least 9 more women — several taken from ski resorts. His youngest confirmed victim, Lynette Culver, was only 12 years old.",
+   victims:"Nancy Wilcox, Melissa Smith, Laura Aime, Debra Kent, Caryn Campbell, Julie Cunningham, Denise Oliverson, Lynette Culver (age 12), Susan Curtis"},
+  {id:4,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",thumb:IMG.bundy80,
+   photos:[{src:IMG.bundy80,cap:"Ted Bundy — official mugshot, Feb 13 1980 (Florida State Archive, Public Domain)"}],
+   body:"Utah Highway Patrol Officer Bob Hayward spotted Bundy's VW Beetle driving suspiciously. Officers found burglary tools, a ski mask, rope, handcuffs, wire, and an ice pick. Victim Carol DaRonch — who had escaped his attack — identified him in a lineup, leading to a kidnapping conviction.",
+   victims:"Carol DaRonch (survived)"},
+  {id:5,year:"Jun 7, 1977",title:"Escape #1 — Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",thumb:IMG.aspen,
+   photos:[{src:IMG.aspen,cap:"Aspen, Colorado — Bundy jumped from the second floor courthouse window"}],
+   body:"While being held for murder in Colorado, Bundy was allowed to use the courthouse law library. Left briefly alone, he opened a second-floor window and jumped to the ground, fleeing into the mountains. He survived 8 days in the wilderness before being recaptured.",
+   victims:null},
+  {id:6,year:"Dec 30, 1977",title:"Escape #2 — The Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",thumb:IMG.glenwood,
+   photos:[{src:IMG.glenwood,cap:"Glenwood Springs, Colorado — where Bundy made his final and most audacious escape"}],
+   body:"Bundy starved himself 35 pounds lighter over months. Using a smuggled hacksaw blade, he carved a hole through his cell ceiling. While a Christmas party covered any noise, he crawled through, dropped into a vacant apartment, dressed in civilian clothes, and walked out the front door. Missing for 15 hours before discovered.",
+   victims:null},
+  {id:7,year:"Jan 15, 1978",title:"Chi Omega Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",thumb:IMG.fsu,
+   photos:[{src:IMG.fsu,cap:"Florida State University — the Chi Omega sorority house was located on campus"}],
+   body:"In a frenzied attack under 15 minutes, Bundy broke into the Chi Omega sorority house at FSU at 3 AM. Armed with a log, he attacked four sleeping women — killing two and critically injuring two more. Bite marks on victim Lisa Levy became landmark forensic evidence that convicted him.",
+   victims:"Lisa Levy, Margaret Bowman (murdered); Karen Chandler, Kathy Kleiner (survived)"},
+  {id:8,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",thumb:IMG.bundy80,
+   photos:[{src:IMG.bundy80,cap:"Ted Bundy — mugshot taken after his final arrest (Public Domain)"}],
+   body:"Bundy abducted 12-year-old Kimberly Leach from outside her middle school in broad daylight. Her body was found two months later in a state park. She was his youngest known victim and his final murder — this crime anchored his second death sentence.",
+   victims:"Kimberly Leach, age 12 — his final known victim"},
+  {id:9,year:"Feb 15, 1978",title:"Final Arrest",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",thumb:IMG.pensacola,
+   photos:[{src:IMG.pensacola,cap:"Pensacola, Florida — where Officer David Lee made the final arrest"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Florida State Archive, Public Domain)"}],
+   body:"Officer David Lee spotted Bundy driving a stolen VW Beetle. Bundy fled on foot before being subdued. He had been free for 46 days — murdering at least 3 more people. It was the last time he would ever be free.",
+   victims:null},
+  {id:10,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",thumb:IMG.miami,
+   photos:[{src:IMG.miami,cap:"Miami, Florida — site of the nationally televised Chi Omega murder trial, 1979"}],
+   body:"Bundy represented himself at trial — one of the first criminal trials broadcast on national television. Forensic odontologist Dr. Richard Souviron presented bite mark evidence matching Bundy to victim Lisa Levy — groundbreaking forensic testimony. He was convicted of two counts of first-degree murder and sentenced to death.",
+   victims:null},
+  {id:11,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",thumb:IMG.orlando,
+   photos:[{src:IMG.orlando,cap:"Orlando, Florida — site of the Kimberly Leach murder trial, 1980"}],
+   body:"A second trial for the murder of Kimberly Leach resulted in a third death sentence. Bundy continued to publicly deny his crimes for years while privately admitting guilt to FBI agents.",
+   victims:null},
+  {id:12,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison",lat:29.9432,lng:-82.1101,type:"trial",thumb:IMG.prison,
+   photos:[{src:IMG.prison,cap:"Florida State Prison, Starke — where Bundy was executed by electric chair"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot before execution (Public Domain)"}],
+   body:"On the night before his execution, Bundy confessed to 30 murders across 7 states to FBI Special Agent William Hagmaier. Investigators believe the true number exceeds 100. At 7:06 AM on January 24, 1989, Theodore Robert Bundy was executed by electric chair. He was 42 years old. Crowds gathered outside cheering.",
+   victims:"30 confessed. Estimated 100+. Only 20 ever positively identified."},
 ];
 
-// ── KEY EVENTS ──
-const events = [
-  { id:1, year:"Jan–Nov 1974", title:"First Known Murders", location:"Seattle, Washington", lat:47.6062, lng:-122.3321, type:"crime",
-    body:"On January 4, 1974, Bundy entered the basement bedroom of 21-year-old Joni Lenz, beating her with a metal rod from her bed frame. She survived with permanent brain damage. Within months, multiple University of Washington students vanished. Bundy often posed as an injured man with his arm in a sling, asking women to help carry items to his tan VW Beetle.",
-    victims:"Joni Lenz (survived), Linda Ann Healy, Donna Manson, Susan Rancourt, Roberta Parks, Brenda Ball, Georgeann Hawkins",
-    photos:[
-      {src:"https://images.findagrave.com/photos/2008/100/25787193_120774241213.jpg", cap:"Linda Ann Healy"},
-      {src:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Ted_Bundy_headshot.jpg/440px-Ted_Bundy_headshot.jpg", cap:"Ted Bundy — 1978 mugshot"}
-    ]},
-  { id:2, year:"Jul 14, 1974", title:"Lake Sammamish Abductions", location:"Lake Sammamish State Park, WA", lat:47.5707, lng:-122.0810, type:"crime",
-    body:"In one of his most brazen acts, Bundy abducted two women from a crowded public beach in broad daylight on the same afternoon. He introduced himself as 'Ted' and asked for help with his sailboat. Multiple witnesses saw him — giving investigators their first real description of the suspect. Both women were murdered.",
-    victims:"Janice Ott, Denise Naslund",
-    photos:[{src:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Lake_Sammamish_State_Park.jpg/440px-Lake_Sammamish_State_Park.jpg",cap:"Lake Sammamish State Park, WA"}]},
-  { id:3, year:"1974–1975", title:"Utah & Colorado Murders", location:"Salt Lake City, Utah", lat:40.7608, lng:-111.8910, type:"crime",
-    body:"After relocating to attend the University of Utah Law School, Bundy continued his killing spree across Utah, Colorado, and Idaho. He murdered at least 9 more women. Several victims were taken from ski resorts. His youngest confirmed victim in this period, Lynette Culver, was only 12 years old.",
-    victims:"Nancy Wilcox, Melissa Smith, Laura Aime, Debra Kent, Caryn Campbell, Julie Cunningham, Denise Oliverson, Lynette Culver (age 12), Susan Curtis",
-    photos:[]},
-  { id:4, year:"Aug 16, 1975", title:"First Arrest", location:"Salt Lake City, Utah", lat:40.7128, lng:-111.9000, type:"arrest",
-    body:"Utah Highway Patrol Officer Bob Hayward spotted Bundy's VW Beetle driving suspiciously late at night. Officers discovered burglary tools, a ski mask, rope, handcuffs, wire, and an ice pick. Victim Carol DaRonch — who had escaped his attack — later picked him out of a lineup, leading to a kidnapping conviction.",
-    victims:"Carol DaRonch (survived)", photos:[]},
-  { id:5, year:"Jun 7, 1977", title:"First Escape — Courthouse Jump", location:"Aspen, Colorado", lat:39.1911, lng:-106.8175, type:"escape",
-    body:"While being held for murder, Bundy was allowed to use the courthouse law library. Left briefly alone on the second floor, he opened a window and jumped to the ground below, fleeing into the mountains. He survived 8 days in the wilderness before being recaptured.",
-    victims:null, photos:[]},
-  { id:6, year:"Dec 30, 1977", title:"Second Escape — The Ceiling Crawl", location:"Glenwood Springs, Colorado", lat:39.5505, lng:-107.3248, type:"escape",
-    body:"Bundy deliberately starved himself down 35 pounds. Using a smuggled hacksaw blade, he carved a hole through his cell ceiling. While a Christmas party covered any noise, he crawled through, dropped into a jailer's vacant apartment, dressed in civilian clothes, and walked out the front door. He wasn't discovered missing for 15 hours.",
-    victims:null, photos:[]},
-  { id:7, year:"Jan 15, 1978", title:"Chi Omega Sorority Attack", location:"Tallahassee, Florida", lat:30.4383, lng:-84.2807, type:"crime",
-    body:"In a frenzied attack lasting under 15 minutes, Bundy broke into the Chi Omega sorority house at FSU at 3 AM. Armed with a log, he attacked four sleeping women — killing two and critically injuring two more. Bite marks left on one victim would later be used as landmark forensic evidence to identify him.",
-    victims:"Lisa Levy, Margaret Bowman (murdered); Karen Chandler, Kathy Kleiner (critically injured, survived)", photos:[]},
-  { id:8, year:"Feb 9, 1978", title:"Murder of Kimberly Leach", location:"Lake City, Florida", lat:30.1897, lng:-82.6382, type:"crime",
-    body:"Bundy abducted 12-year-old Kimberly Leach from outside her middle school in broad daylight. Her body was found two months later in a state park. She was his youngest known victim and his final murder.",
-    victims:"Kimberly Leach, age 12 — his final known victim", photos:[]},
-  { id:9, year:"Feb 15, 1978", title:"Final Arrest", location:"Pensacola, Florida", lat:30.4213, lng:-87.2169, type:"arrest",
-    body:"Officer David Lee spotted Bundy driving a stolen VW Beetle. Bundy fled on foot before being subdued. He had been free for 46 days — during which he murdered at least three more people. It was the last time he would ever be free.",
-    victims:null, photos:[]},
-  { id:10, year:"Jul 31, 1979", title:"Chi Omega Trial & Conviction", location:"Miami, Florida", lat:25.7617, lng:-80.1918, type:"trial",
-    body:"Bundy represented himself at trial — one of the first ever broadcast on national television. Forensic odontologist Dr. Richard Souviron presented bite mark evidence matching Bundy to victim Lisa Levy — groundbreaking forensic testimony. He was convicted of two counts of first-degree murder and sentenced to death.",
-    victims:null, photos:[]},
-  { id:11, year:"Feb 1980", title:"Kimberly Leach Trial", location:"Orlando, Florida", lat:28.5383, lng:-81.3792, type:"trial",
-    body:"A second trial for the murder of Kimberly Leach resulted in a third death sentence. Bundy continued to deny his crimes publicly for years, even as he privately admitted guilt to FBI agents.",
-    victims:null, photos:[]},
-  { id:12, year:"Jan 24, 1989", title:"Execution", location:"Florida State Prison, Starke, FL", lat:29.9432, lng:-82.1101, type:"trial",
-    body:"On the night before his execution, Bundy confessed to 30 murders across 7 states. Investigators believe the true number exceeds 100. At 7:06 AM on January 24, 1989, Theodore Robert Bundy was executed by electric chair. He was 42 years old. Crowds gathered outside cheering.",
-    victims:"30 confessed. Estimated 100+. Only 20 ever identified.",
-    photos:[{src:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Ted_Bundy_headshot.jpg/440px-Ted_Bundy_headshot.jpg",cap:"Ted Bundy — final mugshot, 1978"}]}
+const murders=[
+  {name:"Joni Lenz",date:"Jan 4, 1974",loc:"Seattle, WA",lat:47.6062,lng:-122.3321,note:"Survived — permanent brain damage"},
+  {name:"Linda Ann Healy",date:"Feb 1, 1974",loc:"Seattle, WA",lat:47.6588,lng:-122.3103},
+  {name:"Donna Manson",date:"Mar 12, 1974",loc:"Olympia, WA",lat:47.0379,lng:-122.9007},
+  {name:"Susan Rancourt",date:"Apr 17, 1974",loc:"Ellensburg, WA",lat:46.9965,lng:-120.5478},
+  {name:"Roberta Parks",date:"May 6, 1974",loc:"Corvallis, OR",lat:44.5646,lng:-123.2620},
+  {name:"Brenda Ball",date:"Jun 1, 1974",loc:"Burien, WA",lat:47.4760,lng:-122.3465},
+  {name:"Georgeann Hawkins",date:"Jun 11, 1974",loc:"Seattle, WA",lat:47.6553,lng:-122.3035},
+  {name:"Janice Ott",date:"Jul 14, 1974",loc:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810},
+  {name:"Denise Naslund",date:"Jul 14, 1974",loc:"Lake Sammamish, WA",lat:47.5690,lng:-122.0795},
+  {name:"Nancy Wilcox",date:"Oct 2, 1974",loc:"Holladay, UT",lat:40.6677,lng:-111.8288},
+  {name:"Melissa Smith",date:"Oct 18, 1974",loc:"Midvale, UT",lat:40.6113,lng:-111.8997},
+  {name:"Laura Aime",date:"Oct 31, 1974",loc:"Lehi, UT",lat:40.3916,lng:-111.8508},
+  {name:"Debra Kent",date:"Nov 8, 1974",loc:"Bountiful, UT",lat:40.8893,lng:-111.8808},
+  {name:"Caryn Campbell",date:"Jan 12, 1975",loc:"Snowmass Village, CO",lat:39.2083,lng:-106.9378},
+  {name:"Julie Cunningham",date:"Mar 15, 1975",loc:"Vail, CO",lat:39.6433,lng:-106.3781},
+  {name:"Denise Oliverson",date:"Apr 6, 1975",loc:"Grand Junction, CO",lat:39.0639,lng:-108.5506},
+  {name:"Lynette Culver",date:"May 6, 1975",loc:"Pocatello, ID",lat:42.8713,lng:-112.4455,note:"Age 12 — youngest confirmed victim"},
+  {name:"Susan Curtis",date:"Jun 28, 1975",loc:"Provo, UT",lat:40.2338,lng:-111.6585},
+  {name:"Unknown Victim #1",date:"1974",loc:"Oregon",lat:44.1,lng:-121.5},
+  {name:"Unknown Victim #2",date:"1974",loc:"Washington",lat:47.2,lng:-121.8},
+  {name:"Unknown Victim #3",date:"1975",loc:"Colorado",lat:39.5,lng:-105.7},
+  {name:"Unknown Victim #4",date:"1975",loc:"Utah",lat:40.5,lng:-111.5},
+  {name:"Unknown Victim #5",date:"1975",loc:"Idaho",lat:43.5,lng:-114.0},
+  {name:"Unknown Victim #6",date:"1976",loc:"Florida",lat:30.2,lng:-85.0},
+  {name:"Lisa Levy",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4420,lng:-84.2968},
+  {name:"Margaret Bowman",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4410,lng:-84.2975},
+  {name:"Cheryl Thomas",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4400,lng:-84.2900,note:"Survived — permanent hearing loss"},
+  {name:"Kimberly Leach",date:"Feb 9, 1978",loc:"Lake City, FL",lat:30.1897,lng:-82.6382,note:"Age 12 — final known victim"},
+  {name:"Unknown Victim #7",date:"1978",loc:"Florida",lat:29.8,lng:-82.3},
+  {name:"Unknown Victim #8",date:"1978",loc:"Florida",lat:30.5,lng:-84.5},
 ];
 
-const typeColors = { crime:"#c0392b", arrest:"#2980b9", escape:"#d35400", trial:"#27ae60" };
-const typeLabels = { crime:"Murder / Crime", arrest:"Arrest", escape:"Escape", trial:"Trial / Execution" };
+let map,evMk={},activeId=null,tlOpen=false,mapInited=false;
 
-let map, markers={}, murderMarkers=[], activeId=null, timelineOpen=false, mapInited=false;
-
-function showScreen(id) {
+function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-function goDramatic() {
+function goDramatic(){
   showScreen('dramaticScreen');
   const ds=document.getElementById('dramaticScreen');
   setTimeout(()=>ds.classList.add('fade-in'),50);
-  const line=document.getElementById('d-line');
-  const stat=document.getElementById('d-stat');
-  const rule=document.getElementById('d-rule');
-  const final=document.getElementById('d-final');
-  const btn=document.getElementById('d-btn');
-  setTimeout(()=>{ line.style.transition='opacity 1s ease'; line.style.opacity='1'; },400);
-  setTimeout(()=>{ stat.style.transition='opacity 1.2s ease'; stat.style.opacity='1'; },1200);
-  setTimeout(()=>{ rule.style.transition='width 1.2s ease'; rule.style.width='80px'; },2600);
-  setTimeout(()=>{ final.style.transition='opacity 1.4s ease'; final.style.opacity='1'; },3200);
-  setTimeout(()=>{ btn.style.transition='opacity 1s ease'; btn.style.opacity='1'; },5000);
+  const show=(id,delay,prop,val)=>setTimeout(()=>{const e=document.getElementById(id);e.style.transition=`${prop} 1.2s ease`;e.style[prop]=val;},delay);
+  show('de',400,'opacity','1');
+  show('ds',1300,'opacity','1');
+  setTimeout(()=>{const r=document.getElementById('dr');r.style.transition='width 1.2s ease';r.style.width='80px';},2700);
+  show('df',3400,'opacity','1');
+  show('db',5200,'opacity','1');
 }
 
-function startApp() {
+function startApp(){
   showScreen('appScreen');
-  if (!mapInited) { setTimeout(initMap,80); mapInited=true; }
+  if(!mapInited){setTimeout(initMap,80);mapInited=true;}
 }
 
-function initMap() {
+function initMap(){
   map=L.map("map",{zoomControl:false,attributionControl:false}).setView([38.5,-96],4.5);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
   L.control.zoom({position:"bottomright"}).addTo(map);
 
-  // Plot all 30 murders as small red dots
   murders.forEach(m=>{
     const el=document.createElement("div");
-    el.style.cssText=`width:8px;height:8px;border-radius:50%;background:#8b0000;border:1px solid rgba(255,100,100,0.3);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 6px #8b000088;`;
-    el.addEventListener("mouseenter",()=>{ el.style.transform="scale(2)"; el.style.boxShadow="0 0 12px #c0392b"; });
-    el.addEventListener("mouseleave",()=>{ el.style.transform="scale(1)"; el.style.boxShadow="0 0 6px #8b000088"; });
-    const marker=L.marker([m.lat,m.lng],{icon:L.divIcon({html:el,className:"",iconSize:[8,8],iconAnchor:[4,4]})}).addTo(map);
-    marker.bindPopup(`
-      <div class="mp-name">${m.name}</div>
-      <div class="mp-date">${m.date}</div>
-      <div class="mp-loc">${m.loc}</div>
-      ${m.note?`<div style="font-size:9px;color:#8b0000;margin-top:4px;font-style:italic;">${m.note}</div>`:''}
-    `,{className:'murder-popup',maxWidth:200,offset:[0,-4]});
-    murderMarkers.push(marker);
+    el.style.cssText=`width:8px;height:8px;border-radius:50%;background:#8b0000;border:1px solid rgba(255,80,80,.2);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 6px #8b000099;`;
+    el.onmouseenter=()=>{el.style.transform="scale(2)";el.style.boxShadow="0 0 14px #c0392b";};
+    el.onmouseleave=()=>{el.style.transform="scale(1)";el.style.boxShadow="0 0 6px #8b000099";};
+    const mk=L.marker([m.lat,m.lng],{icon:L.divIcon({html:el,className:"",iconSize:[8,8],iconAnchor:[4,4]})}).addTo(map);
+    mk.bindPopup(`<div class="mp-name">${m.name}</div><div class="mp-date">${m.date}</div><div style="font-size:9px;color:#555;margin-top:2px">${m.loc}</div>${m.note?`<div class="mp-note">${m.note}</div>`:''}`,{className:'murder-popup',maxWidth:200,offset:[0,-4]});
   });
 
-  // Plot key events as larger colored dots
   events.forEach(ev=>{
     const el=document.createElement("div");
-    const color=typeColors[ev.type];
-    el.style.cssText=`width:14px;height:14px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.2);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 10px ${color}99;`;
-    el.addEventListener("mouseenter",()=>{ if(activeId!==ev.id) el.style.transform="scale(1.5)"; });
-    el.addEventListener("mouseleave",()=>{ if(activeId!==ev.id) el.style.transform="scale(1)"; });
-    const marker=L.marker([ev.lat,ev.lng],{icon:L.divIcon({html:el,className:"",iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map);
-    marker.on("click",()=>selectEvent(ev.id));
-    markers[ev.id]={marker,el};
+    const c=TC[ev.type];
+    el.style.cssText=`width:14px;height:14px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,.15);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 10px ${c}99;`;
+    el.onmouseenter=()=>{if(activeId!==ev.id)el.style.transform="scale(1.5)";};
+    el.onmouseleave=()=>{if(activeId!==ev.id)el.style.transform="scale(1)";};
+    const mk=L.marker([ev.lat,ev.lng],{icon:L.divIcon({html:el,className:"",iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map);
+    mk.on("click",()=>selectEv(ev.id));
+    evMk[ev.id]={marker:mk,el};
   });
 
-  buildTimeline();
+  buildTL();
 }
 
-function buildTimeline() {
-  const scroll=document.getElementById("timelineScroll");
-  scroll.innerHTML="";
-  events.forEach(ev=>{
-    const div=document.createElement("div");
-    div.className="tl-event"; div.id="tl-"+ev.id;
-    const color=typeColors[ev.type];
-    div.innerHTML=`<div class="tl-year">${ev.year}</div><div class="tl-name">${ev.title}</div><div class="tl-loc">${ev.location}</div><span class="tl-badge" style="background:${color}22;color:${color}">${typeLabels[ev.type]}</span>`;
-    div.addEventListener("click",()=>{ selectEvent(ev.id); map.flyTo([ev.lat,ev.lng],10,{duration:1.5}); });
-    scroll.appendChild(div);
+function buildTL(){
+  const track=document.getElementById("tlTrack");
+  const spine=track.querySelector('.tl-spine');
+  track.innerHTML='';
+  track.appendChild(spine);
+
+  events.forEach((ev,i)=>{
+    const above=i%2===0;
+    const c=TC[ev.type];
+    const node=document.createElement("div");
+    node.className="tl-node "+(above?"above":"below");
+    node.id="tln"+ev.id;
+
+    const card=document.createElement("div");
+    card.className="tl-card";
+    if(ev.thumb){
+      const img=document.createElement("img");
+      img.className="tl-card-img"; img.src=ev.thumb; img.alt=ev.title;
+      img.onerror=function(){this.style.display='none';};
+      card.appendChild(img);
+    }
+    const bd=document.createElement("div");
+    bd.innerHTML=`<div class="tl-card-type" style="color:${c}">${TL[ev.type]}</div><div class="tl-card-year">${ev.year}</div><div class="tl-card-name">${ev.title}</div><div class="tl-card-loc">${ev.location}</div>`;
+    card.appendChild(bd);
+
+    const conn=document.createElement("div");
+    conn.className="tl-conn"; conn.style.height="50px";
+
+    const dot=document.createElement("div");
+    dot.className="tl-dot";
+    dot.style.background=c;
+    dot.style.boxShadow=`0 0 8px ${c}aa`;
+
+    if(above){
+      node.appendChild(card);
+      node.appendChild(conn);
+      node.appendChild(dot);
+    } else {
+      node.appendChild(dot);
+      node.appendChild(conn);
+      node.appendChild(card);
+    }
+
+    node.addEventListener("click",()=>selectEv(ev.id));
+    track.appendChild(node);
   });
 }
 
-function selectEvent(id) {
+function selectEv(id){
   activeId=id;
   const ev=events.find(e=>e.id===id);
-  const color=typeColors[ev.type];
-  Object.entries(markers).forEach(([eid,m])=>{
+  const c=TC[ev.type];
+
+  Object.entries(evMk).forEach(([eid,m])=>{
     const e=events.find(x=>x.id==eid);
     m.el.style.transform="scale(1)";
-    m.el.style.boxShadow=`0 0 10px ${typeColors[e.type]}99`;
+    m.el.style.boxShadow=`0 0 10px ${TC[e.type]}99`;
   });
-  markers[id].el.style.transform="scale(2)";
-  markers[id].el.style.boxShadow=`0 0 20px ${color},0 0 40px ${color}55`;
-  document.querySelectorAll(".tl-event").forEach(el=>el.classList.remove("active"));
-  const tlItem=document.getElementById("tl-"+id);
-  if(tlItem){ tlItem.classList.add("active"); tlItem.scrollIntoView({block:"nearest",behavior:"smooth"}); }
-  document.getElementById("dType").textContent=typeLabels[ev.type];
-  document.getElementById("dType").style.color=color;
+  if(evMk[id]){evMk[id].el.style.transform="scale(2)";evMk[id].el.style.boxShadow=`0 0 20px ${c},0 0 40px ${c}55`;}
+
+  document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
+  const node=document.getElementById("tln"+id);
+  if(node){node.classList.add('sel');node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+
+  document.getElementById("dType").textContent=TL[ev.type];
+  document.getElementById("dType").style.color=c;
   document.getElementById("dTitle").textContent=ev.title;
   document.getElementById("dMeta").textContent=ev.year+" · "+ev.location;
   document.getElementById("dBody").textContent=ev.body;
 
-  const photosEl=document.getElementById("dPhotos");
-  photosEl.innerHTML="";
-  if(ev.photos&&ev.photos.length>0){
+  const ph=document.getElementById("dPhotos");
+  ph.innerHTML="";
+  if(ev.photos&&ev.photos.length){
     ev.photos.forEach(p=>{
       const img=document.createElement("img");
-      img.className="detail-photo"; img.src=p.src; img.alt=p.cap;
-      img.onerror=function(){ this.remove(); };
-      img.addEventListener("click",()=>openLightbox(p.src,p.cap));
-      photosEl.appendChild(img);
+      img.className="det-photo"; img.src=p.src; img.alt=p.cap;
+      img.onerror=function(){this.remove();};
+      img.onclick=()=>openLB(p.src,p.cap);
+      ph.appendChild(img);
     });
   }
 
-  const vicEl=document.getElementById("dVictims");
-  if(ev.victims){
-    vicEl.innerHTML=`<div class="detail-victims-label">Known Victims</div><div class="detail-victims-list">${ev.victims}</div>`;
-    vicEl.style.display="block";
-  } else { vicEl.style.display="none"; }
-  document.getElementById("detailCard").classList.add("visible");
+  const vic=document.getElementById("dVic");
+  if(ev.victims){vic.innerHTML=`<div class="det-vl">Known Victims</div><div class="det-vv">${ev.victims}</div>`;vic.style.display="block";}
+  else vic.style.display="none";
+
+  document.getElementById("detCard").classList.add("visible");
+  if(map) map.flyTo([ev.lat,ev.lng],9,{duration:1.2});
 }
 
-function closeDetail(){
-  document.getElementById("detailCard").classList.remove("visible");
+function closeDet(){
+  document.getElementById("detCard").classList.remove("visible");
   activeId=null;
-  Object.entries(markers).forEach(([eid,m])=>{ m.el.style.transform="scale(1)"; });
-  document.querySelectorAll(".tl-event").forEach(el=>el.classList.remove("active"));
+  Object.entries(evMk).forEach(([,m])=>{m.el.style.transform="scale(1)";});
+  document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
 }
 
-function toggleTimeline(){
-  timelineOpen=!timelineOpen;
-  document.getElementById("timelinePanel").classList.toggle("open",timelineOpen);
+function toggleTL(){
+  tlOpen=!tlOpen;
+  const ov=document.getElementById("tlOverlay");
+  const btn=document.getElementById("tlBtn");
+  if(tlOpen){
+    ov.classList.add('open');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('vis')));
+    btn.classList.add('on');
+  } else {
+    ov.classList.remove('vis');
+    setTimeout(()=>ov.classList.remove('open'),400);
+    btn.classList.remove('on');
+  }
 }
-function openLightbox(src,cap){
-  document.getElementById("lightbox-img").src=src;
-  document.getElementById("lightbox-caption").textContent=cap;
-  document.getElementById("lightbox").classList.add("open");
-}
-function closeLightbox(){ document.getElementById("lightbox").classList.remove("open"); }
-document.getElementById("lightbox").addEventListener("click",function(e){ if(e.target===this) closeLightbox(); });
+
+function openLB(src,cap){document.getElementById("lb-img").src=src;document.getElementById("lb-cap").textContent=cap;document.getElementById("lb").classList.add("open");}
+function closeLB(){document.getElementById("lb").classList.remove("open");}
+document.getElementById("lb").addEventListener("click",function(e){if(e.target===this)closeLB();});
 </script>
 </body>
 </html>
