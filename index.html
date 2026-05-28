@@ -12,7 +12,7 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
 .screen { position:fixed; inset:0; display:none; }
 .screen.active { display:flex; }
 
-/* ══ PAGE 1 — INTRO ══ */
+/* PAGE 1 */
 #introScreen { background:#000; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
 .intro-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,#2d0000 0%,transparent 60%); animation:breathe 5s ease-in-out infinite; }
 @keyframes breathe { 0%,100%{opacity:.4} 50%{opacity:.9} }
@@ -33,7 +33,7 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
 @keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 @keyframes growW { to{width:80px} }
 
-/* ══ PAGE 2 — DRAMATIC ══ */
+/* PAGE 2 */
 #dramaticScreen { background:#000; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; opacity:0; transition:opacity .8s ease; }
 #dramaticScreen.fade-in { opacity:1; }
 .dram-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,#1a0000 0%,#000 70%); }
@@ -48,7 +48,7 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
 .dram-btn { margin-top:52px; padding:13px 52px; background:transparent; border:1px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s; opacity:0; }
 .dram-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 40px #8b000055; }
 
-/* ══ PAGE 3 — MAP ══ */
+/* PAGE 3 MAP */
 #appScreen { flex-direction:column; z-index:1; }
 #map { position:absolute; inset:0; z-index:1; }
 
@@ -69,118 +69,124 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
 .leg-count { font-size:8px; color:#2a2a2a; letter-spacing:1px; }
 .leg-count span { color:#8b0000; }
 
-/* ══ TIMELINE OVERLAY — TRANSPARENT, ONE WITH THE SCREEN ══ */
+/* TIMELINE OVERLAY — dark tint so it stands out */
 #tlOverlay {
   position:absolute; inset:0; z-index:700;
-  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.82);
+  backdrop-filter:blur(3px);
+  display:none; flex-direction:column;
   opacity:0; transition:opacity .4s ease;
   pointer-events:none;
 }
 #tlOverlay.open { display:flex; pointer-events:all; }
 #tlOverlay.vis { opacity:1; }
 
-/* Close btn — top right, floating */
-.tl-close-btn {
-  position:absolute; top:68px; right:24px; z-index:10;
-  background:none; border:none; color:#333; font-size:20px;
-  cursor:pointer; transition:color .2s; letter-spacing:2px;
-  font-family:'Courier Prime',monospace;
+.tl-topbar {
+  position:absolute; top:0; left:0; right:0; height:57px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; z-index:10;
 }
-.tl-close-btn:hover { color:#8b0000; }
+.tl-label { font-size:8px; letter-spacing:5px; color:#8b0000; text-transform:uppercase; }
+.tl-close-btn { background:none; border:1px solid #2a2a2a; color:#555; font-size:9px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; padding:6px 16px; font-family:'Courier Prime',monospace; transition:all .2s; }
+.tl-close-btn:hover { border-color:#8b0000; color:#8b0000; }
 
-/* Horizontal scroll */
+/* Horizontal scroll wrapper — full height, centered */
 .tl-h-wrap {
-  width:100%; height:100%;
-  overflow-x:auto; overflow-y:hidden;
+  flex:1; overflow-x:auto; overflow-y:hidden;
   display:flex; align-items:center;
-  padding:0;
-  scrollbar-width:none;
+  padding-top:57px;
+  scrollbar-width:thin; scrollbar-color:#1a1a1a transparent;
 }
-.tl-h-wrap::-webkit-scrollbar { display:none; }
+.tl-h-wrap::-webkit-scrollbar { height:3px; }
+.tl-h-wrap::-webkit-scrollbar-thumb { background:#1a1a1a; }
 
 /* Track */
 .tl-track {
-  position:relative; height:100%;
+  position:relative;
   display:flex; align-items:center;
-  padding:0 80px; min-width:max-content;
-  gap:0;
+  height:100%;
+  padding:0 80px;
+  min-width:max-content;
 }
 
-/* The center spine — just a line, no container */
+/* Center spine */
 .tl-spine {
   position:absolute; top:50%; left:0; right:0; height:1px;
-  background:linear-gradient(to right, transparent 0%, #8b0000 3%, #8b0000 97%, transparent 100%);
+  background:linear-gradient(to right,transparent,#8b0000 4%,#8b0000 96%,transparent);
   transform:translateY(-50%); pointer-events:none; z-index:0;
 }
 
-/* Year label on spine */
-.tl-year-label {
-  position:absolute; top:50%; transform:translateY(10px);
-  font-size:8px; letter-spacing:2px; color:#8b000088;
-  pointer-events:none; z-index:1; white-space:nowrap;
-}
-
-/* Each node */
+/* Node wrapper — alternates above/below */
 .tl-node {
-  position:relative; display:flex; flex-direction:column;
-  align-items:center; cursor:pointer; margin:0 36px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  margin:0 40px;
+  cursor:pointer;
   z-index:2;
 }
-/* above = card on top */
-.tl-node.above { justify-content:flex-end; align-self:flex-start; height:50%; padding-bottom:0; }
-/* below = card on bottom */
-.tl-node.below { justify-content:flex-start; align-self:flex-end; height:50%; padding-top:0; flex-direction:column-reverse; }
 
-/* Card — transparent bg, just a subtle dark tint */
+/* above: card top, connector down, dot at bottom */
+.tl-node.above {
+  flex-direction:column;
+  justify-content:flex-end;
+  align-self:flex-start;
+  height:calc(50% - 5px);
+  margin-top:0;
+}
+
+/* below: dot at top, connector up, card bottom */
+.tl-node.below {
+  flex-direction:column-reverse;
+  justify-content:flex-start;
+  align-self:flex-end;
+  height:calc(50% - 5px);
+  margin-bottom:0;
+}
+
 .tl-card {
-  width:160px;
-  background:rgba(0,0,0,0.55);
-  backdrop-filter:blur(8px);
-  padding:10px 12px 10px;
-  transition:all .2s;
-  border-bottom:1px solid transparent;
+  width:155px;
+  background:rgba(8,0,0,0.9);
+  border:1px solid #2a2a2a;
   overflow:hidden;
+  transition:all .2s;
+  flex-shrink:0;
 }
-.tl-node.above .tl-card { border-bottom:1px solid #8b000033; }
-.tl-node.below .tl-card { border-top:1px solid #8b000033; }
 .tl-node:hover .tl-card,
-.tl-node.sel .tl-card {
-  background:rgba(10,0,0,0.75);
-}
-.tl-node.above:hover .tl-card,
-.tl-node.above.sel .tl-card { border-bottom-color:#8b0000; }
-.tl-node.below:hover .tl-card,
-.tl-node.below.sel .tl-card { border-top-color:#8b0000; }
+.tl-node.sel .tl-card { border-color:#8b0000; background:rgba(20,0,0,0.95); }
 
-.tl-card-img { width:100%; height:64px; object-fit:cover; filter:grayscale(90%) brightness(.5); display:block; margin-bottom:8px; transition:filter .3s; }
-.tl-node:hover .tl-card-img { filter:grayscale(50%) brightness(.7); }
+.tl-card-img { width:100%; height:60px; object-fit:cover; filter:grayscale(90%) brightness(.5); display:block; transition:filter .3s; }
+.tl-node:hover .tl-card-img,.tl-node.sel .tl-card-img { filter:grayscale(40%) brightness(.75); }
+.tl-card-body { padding:8px 10px 10px; }
 .tl-card-type { font-size:7px; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
-.tl-card-year { font-size:7px; color:#333; letter-spacing:1px; margin-bottom:3px; }
-.tl-card-name { font-size:10px; color:#999; line-height:1.4; }
-.tl-card-loc { font-size:7px; color:#333; margin-top:3px; }
+.tl-card-year { font-size:7px; color:#444; letter-spacing:1px; margin-bottom:2px; }
+.tl-card-name { font-size:10px; color:#aaa; line-height:1.4; }
+.tl-card-loc { font-size:7px; color:#444; margin-top:3px; }
 
-/* Connector — vertical line from card to spine dot */
-.tl-conn { width:1px; flex-shrink:0; min-height:40px; }
-.tl-node.above .tl-conn { background:linear-gradient(to bottom, #8b000066, #8b0000cc); }
-.tl-node.below .tl-conn { background:linear-gradient(to top, #8b000066, #8b0000cc); }
-
-/* Spine dot */
-.tl-dot {
-  width:9px; height:9px; border-radius:50%;
-  flex-shrink:0; z-index:3; position:relative;
-  transition:transform .2s, box-shadow .2s;
+.tl-conn {
+  width:1px; flex-shrink:0;
+  min-height:30px; flex:1;
+  max-height:80px;
 }
-.tl-node:hover .tl-dot,
-.tl-node.sel .tl-dot { transform:scale(1.8); }
+.tl-node.above .tl-conn { background:linear-gradient(to bottom,#8b000033,#8b0000bb); }
+.tl-node.below .tl-conn { background:linear-gradient(to top,#8b000033,#8b0000bb); }
 
-/* ══ DETAIL CARD ══ */
+.tl-dot {
+  width:10px; height:10px; border-radius:50%;
+  flex-shrink:0; z-index:3;
+  border:1.5px solid rgba(255,255,255,.1);
+  transition:transform .2s,box-shadow .2s;
+}
+.tl-node:hover .tl-dot,.tl-node.sel .tl-dot { transform:scale(1.8); }
+
+/* DETAIL CARD */
 .det-card {
   position:absolute; bottom:28px; left:50%;
   transform:translateX(-50%) translateY(16px);
   z-index:800; width:580px; max-width:calc(100vw - 40px);
-  background:rgba(0,0,0,0.97); border:1px solid #1a1a1a; border-top:2px solid #8b0000;
+  background:rgba(0,0,0,0.98); border:1px solid #1a1a1a; border-top:2px solid #8b0000;
   opacity:0; pointer-events:none; transition:all .3s ease;
-  display:flex; flex-direction:column; max-height:60vh;
+  display:flex; flex-direction:column; max-height:58vh;
 }
 .det-card.visible { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
 .det-hdr { padding:18px 22px 0; flex-shrink:0; }
@@ -193,7 +199,6 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
 .det-scroll::-webkit-scrollbar { width:2px; }
 .det-scroll::-webkit-scrollbar-thumb { background:#1a1a1a; }
 .det-photos { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; }
-.det-photos::-webkit-scrollbar { height:2px; }
 .det-photo { flex-shrink:0; width:100px; height:72px; object-fit:cover; filter:grayscale(70%) brightness(.65); border:1px solid #1a1a1a; cursor:pointer; transition:filter .3s; }
 .det-photo:hover { filter:grayscale(20%) brightness(.9); }
 .det-body { font-size:12px; color:#888; line-height:2; }
@@ -274,16 +279,19 @@ html,body { height:100%; background:#000; color:#e0e0e0; font-family:'Courier Pr
   <div class="legend">
     <div class="leg-title">Map Legend</div>
     <div class="leg-item"><div class="leg-dot" style="background:#8b0000"></div>Confirmed Murder</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#1a5276"></div>Arrest</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#784212"></div>Escape</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#1e4d2b"></div>Trial / Execution</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2471a3"></div>Arrest</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#d35400"></div>Escape</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1e8449"></div>Trial / Execution</div>
     <div class="leg-div"></div>
     <div class="leg-count">All <span>30</span> confirmed murders pinned</div>
   </div>
 
-  <!-- TIMELINE OVERLAY — no box, just the line floating over map -->
+  <!-- TIMELINE OVERLAY -->
   <div id="tlOverlay">
-    <button class="tl-close-btn" onclick="toggleTL()">✕ close</button>
+    <div class="tl-topbar">
+      <div class="tl-label">Chronological Crime Timeline — Scroll to explore →</div>
+      <button class="tl-close-btn" onclick="toggleTL()">✕ &nbsp;Close</button>
+    </div>
     <div class="tl-h-wrap">
       <div class="tl-track" id="tlTrack">
         <div class="tl-spine"></div>
@@ -336,7 +344,7 @@ const IMG={
 
 const events=[
   {id:1,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",thumb:IMG.seattle,
-   photos:[{src:IMG.bundy78,cap:"Ted Bundy — custody photo, 1978 (Florida State Archive, Public Domain)"},{src:IMG.seattle,cap:"Seattle, WA — where Bundy's killing spree began"}],
+   photos:[{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Florida State Archive, Public Domain)"},{src:IMG.seattle,cap:"Seattle, WA — where Bundy's killing spree began"}],
    body:"On January 4, 1974, Bundy attacked 21-year-old Joni Lenz in her Seattle basement bedroom, beating her with a metal rod. She survived with permanent brain damage. His first confirmed murder was Lynda Ann Healy, a University of Washington student, abducted February 1, 1974. Bundy posed as an injured man with his arm in a sling, asking women for help before overpowering them at his tan VW Beetle.",
    victims:"Joni Lenz (survived), Linda Ann Healy, Donna Manson, Susan Rancourt, Roberta Parks, Brenda Ball, Georgeann Hawkins"},
   {id:2,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",thumb:IMG.sammamish,
@@ -344,44 +352,44 @@ const events=[
    body:"In one of his most brazen acts, Bundy abducted two women from a crowded public beach on the same afternoon — introducing himself as 'Ted' and asking for help with his sailboat. Multiple witnesses gave investigators their first real description of the suspect. Both women were murdered, their remains found months later on a hillside east of Seattle.",
    victims:"Janice Ott, Denise Naslund"},
   {id:3,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",thumb:IMG.slc,
-   photos:[{src:IMG.slc,cap:"Salt Lake City, Utah — where Bundy enrolled in law school"},{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Public Domain)"}],
+   photos:[{src:IMG.slc,cap:"Salt Lake City — where Bundy enrolled in law school"},{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Public Domain)"}],
    body:"After relocating to attend the University of Utah Law School, Bundy continued his killing spree across Utah, Colorado, and Idaho. He murdered at least 9 more women — several taken from ski resorts. His youngest confirmed victim, Lynette Culver, was only 12 years old.",
    victims:"Nancy Wilcox, Melissa Smith, Laura Aime, Debra Kent, Caryn Campbell, Julie Cunningham, Denise Oliverson, Lynette Culver (age 12), Susan Curtis"},
   {id:4,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",thumb:IMG.bundy80,
-   photos:[{src:IMG.bundy80,cap:"Ted Bundy — official mugshot, Feb 13 1980 (Florida State Archive, Public Domain)"}],
+   photos:[{src:IMG.bundy80,cap:"Ted Bundy — official mugshot, Feb 1980 (Florida State Archive, Public Domain)"}],
    body:"Utah Highway Patrol Officer Bob Hayward spotted Bundy's VW Beetle driving suspiciously. Officers found burglary tools, a ski mask, rope, handcuffs, wire, and an ice pick. Victim Carol DaRonch — who had escaped his attack — identified him in a lineup, leading to a kidnapping conviction.",
    victims:"Carol DaRonch (survived)"},
   {id:5,year:"Jun 7, 1977",title:"Escape #1 — Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",thumb:IMG.aspen,
    photos:[{src:IMG.aspen,cap:"Aspen, Colorado — Bundy jumped from the second floor courthouse window"}],
    body:"While being held for murder in Colorado, Bundy was allowed to use the courthouse law library. Left briefly alone, he opened a second-floor window and jumped to the ground, fleeing into the mountains. He survived 8 days in the wilderness before being recaptured.",
    victims:null},
-  {id:6,year:"Dec 30, 1977",title:"Escape #2 — The Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",thumb:IMG.glenwood,
-   photos:[{src:IMG.glenwood,cap:"Glenwood Springs, Colorado — where Bundy made his final and most audacious escape"}],
+  {id:6,year:"Dec 30, 1977",title:"Escape #2 — Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",thumb:IMG.glenwood,
+   photos:[{src:IMG.glenwood,cap:"Glenwood Springs, Colorado — where Bundy made his most audacious escape"}],
    body:"Bundy starved himself 35 pounds lighter over months. Using a smuggled hacksaw blade, he carved a hole through his cell ceiling. While a Christmas party covered any noise, he crawled through, dropped into a vacant apartment, dressed in civilian clothes, and walked out the front door. Missing for 15 hours before discovered.",
    victims:null},
   {id:7,year:"Jan 15, 1978",title:"Chi Omega Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",thumb:IMG.fsu,
-   photos:[{src:IMG.fsu,cap:"Florida State University — the Chi Omega sorority house was located on campus"}],
+   photos:[{src:IMG.fsu,cap:"Florida State University — the Chi Omega sorority house was on campus"}],
    body:"In a frenzied attack under 15 minutes, Bundy broke into the Chi Omega sorority house at FSU at 3 AM. Armed with a log, he attacked four sleeping women — killing two and critically injuring two more. Bite marks on victim Lisa Levy became landmark forensic evidence that convicted him.",
    victims:"Lisa Levy, Margaret Bowman (murdered); Karen Chandler, Kathy Kleiner (survived)"},
   {id:8,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",thumb:IMG.bundy80,
    photos:[{src:IMG.bundy80,cap:"Ted Bundy — mugshot taken after his final arrest (Public Domain)"}],
-   body:"Bundy abducted 12-year-old Kimberly Leach from outside her middle school in broad daylight. Her body was found two months later in a state park. She was his youngest known victim and his final murder — this crime anchored his second death sentence.",
+   body:"Bundy abducted 12-year-old Kimberly Leach from outside her middle school in broad daylight. Her body was found two months later in a state park. She was his youngest known victim and his final murder.",
    victims:"Kimberly Leach, age 12 — his final known victim"},
   {id:9,year:"Feb 15, 1978",title:"Final Arrest",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",thumb:IMG.pensacola,
-   photos:[{src:IMG.pensacola,cap:"Pensacola, Florida — where Officer David Lee made the final arrest"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Florida State Archive, Public Domain)"}],
+   photos:[{src:IMG.pensacola,cap:"Pensacola, Florida — where Officer David Lee made the final arrest"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Public Domain)"}],
    body:"Officer David Lee spotted Bundy driving a stolen VW Beetle. Bundy fled on foot before being subdued. He had been free for 46 days — murdering at least 3 more people. It was the last time he would ever be free.",
    victims:null},
   {id:10,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",thumb:IMG.miami,
-   photos:[{src:IMG.miami,cap:"Miami, Florida — site of the nationally televised Chi Omega murder trial, 1979"}],
-   body:"Bundy represented himself at trial — one of the first criminal trials broadcast on national television. Forensic odontologist Dr. Richard Souviron presented bite mark evidence matching Bundy to victim Lisa Levy — groundbreaking forensic testimony. He was convicted of two counts of first-degree murder and sentenced to death.",
+   photos:[{src:IMG.miami,cap:"Miami, Florida — site of the nationally televised Chi Omega murder trial"}],
+   body:"Bundy represented himself at trial — one of the first criminal trials broadcast on national television. Forensic odontologist Dr. Richard Souviron presented bite mark evidence matching Bundy to victim Lisa Levy. He was convicted of two counts of first-degree murder and sentenced to death.",
    victims:null},
   {id:11,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",thumb:IMG.orlando,
-   photos:[{src:IMG.orlando,cap:"Orlando, Florida — site of the Kimberly Leach murder trial, 1980"}],
+   photos:[{src:IMG.orlando,cap:"Orlando, Florida — site of the Kimberly Leach murder trial"}],
    body:"A second trial for the murder of Kimberly Leach resulted in a third death sentence. Bundy continued to publicly deny his crimes for years while privately admitting guilt to FBI agents.",
    victims:null},
   {id:12,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison",lat:29.9432,lng:-82.1101,type:"trial",thumb:IMG.prison,
-   photos:[{src:IMG.prison,cap:"Florida State Prison, Starke — where Bundy was executed by electric chair"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot before execution (Public Domain)"}],
-   body:"On the night before his execution, Bundy confessed to 30 murders across 7 states to FBI Special Agent William Hagmaier. Investigators believe the true number exceeds 100. At 7:06 AM on January 24, 1989, Theodore Robert Bundy was executed by electric chair. He was 42 years old. Crowds gathered outside cheering.",
+   photos:[{src:IMG.prison,cap:"Florida State Prison, Starke — where Bundy was executed"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Public Domain)"}],
+   body:"On the night before his execution, Bundy confessed to 30 murders across 7 states to FBI Special Agent William Hagmaier. Investigators believe the true number exceeds 100. At 7:06 AM on January 24, 1989, Theodore Robert Bundy was executed by electric chair. He was 42 years old.",
    victims:"30 confessed. Estimated 100+. Only 20 ever positively identified."},
 ];
 
@@ -418,25 +426,21 @@ const murders=[
   {name:"Unknown Victim #8",date:"1978",loc:"Florida",lat:30.5,lng:-84.5},
 ];
 
-let map,evMk={},activeId=null,tlOpen=false,mapInited=false;
+let map,evMk={},activeId=null,tlOpen=false,mapInited=false,storyLine=null;
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function goDramatic(){
   showScreen('dramaticScreen');
   const ds=document.getElementById('dramaticScreen');
   setTimeout(()=>ds.classList.add('fade-in'),50);
   const show=(id,delay,prop,val)=>setTimeout(()=>{const e=document.getElementById(id);e.style.transition=`${prop} 1.2s ease`;e.style[prop]=val;},delay);
-  show('de',400,'opacity','1');
-  show('ds',1300,'opacity','1');
+  show('de',400,'opacity','1'); show('ds',1300,'opacity','1');
   setTimeout(()=>{const r=document.getElementById('dr');r.style.transition='width 1.2s ease';r.style.width='80px';},2700);
-  show('df',3400,'opacity','1');
-  show('db',5200,'opacity','1');
+  show('df',3400,'opacity','1'); show('db',5200,'opacity','1');
 }
-
 function startApp(){
   showScreen('appScreen');
   if(!mapInited){setTimeout(initMap,80);mapInited=true;}
@@ -447,6 +451,7 @@ function initMap(){
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
   L.control.zoom({position:"bottomright"}).addTo(map);
 
+  // All 30 murder dots
   murders.forEach(m=>{
     const el=document.createElement("div");
     el.style.cssText=`width:8px;height:8px;border-radius:50%;background:#8b0000;border:1px solid rgba(255,80,80,.2);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 6px #8b000099;`;
@@ -456,6 +461,7 @@ function initMap(){
     mk.bindPopup(`<div class="mp-name">${m.name}</div><div class="mp-date">${m.date}</div><div style="font-size:9px;color:#555;margin-top:2px">${m.loc}</div>${m.note?`<div class="mp-note">${m.note}</div>`:''}`,{className:'murder-popup',maxWidth:200,offset:[0,-4]});
   });
 
+  // Key event dots
   events.forEach(ev=>{
     const el=document.createElement("div");
     const c=TC[ev.type];
@@ -466,6 +472,16 @@ function initMap(){
     mk.on("click",()=>selectEv(ev.id));
     evMk[ev.id]={marker:mk,el};
   });
+
+  // STORY MAP — dashed red line connecting all key events in order
+  const latlngs=events.map(ev=>[ev.lat,ev.lng]);
+  storyLine=L.polyline(latlngs,{
+    color:'#8b0000',
+    weight:1.5,
+    opacity:0.5,
+    dashArray:'6,8',
+    lineJoin:'round'
+  }).addTo(map);
 
   buildTL();
 }
@@ -483,6 +499,7 @@ function buildTL(){
     node.className="tl-node "+(above?"above":"below");
     node.id="tln"+ev.id;
 
+    // card
     const card=document.createElement("div");
     card.className="tl-card";
     if(ev.thumb){
@@ -492,17 +509,22 @@ function buildTL(){
       card.appendChild(img);
     }
     const bd=document.createElement("div");
+    bd.className="tl-card-body";
     bd.innerHTML=`<div class="tl-card-type" style="color:${c}">${TL[ev.type]}</div><div class="tl-card-year">${ev.year}</div><div class="tl-card-name">${ev.title}</div><div class="tl-card-loc">${ev.location}</div>`;
     card.appendChild(bd);
 
+    // connector
     const conn=document.createElement("div");
-    conn.className="tl-conn"; conn.style.height="50px";
+    conn.className="tl-conn";
 
+    // dot
     const dot=document.createElement("div");
     dot.className="tl-dot";
     dot.style.background=c;
     dot.style.boxShadow=`0 0 8px ${c}aa`;
 
+    // above: card → conn → dot (dot touches spine at bottom)
+    // below: dot → conn → card (dot touches spine at top)
     if(above){
       node.appendChild(card);
       node.appendChild(conn);
