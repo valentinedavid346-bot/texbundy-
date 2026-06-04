@@ -5,247 +5,187 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ted Bundy — Interactive Crime Timeline</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier Prime',monospace; overflow:hidden; }
-.screen { position:fixed; inset:0; display:none; }
-.screen.active { display:flex; }
-
-/* ══ PAGE 1 ══ */
-#introScreen { background:#f5f5f0; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
-.intro-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,#e8d5d5 0%,transparent 60%); animation:breathe 5s ease-in-out infinite; }
-@keyframes breathe { 0%,100%{opacity:.5} 50%{opacity:1} }
-.grain { position:absolute; inset:0; pointer-events:none; opacity:.025; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.intro-content { position:relative; z-index:10; text-align:center; padding:0 24px; }
-.intro-label { font-size:12px; letter-spacing:6px; color:#888; text-transform:uppercase; margin-bottom:32px; opacity:0; animation:up 1s ease .2s forwards; }
-.intro-title { font-family:'Playfair Display',serif; font-size:clamp(64px,11vw,120px); font-weight:400; color:#1a1a1a; line-height:1; letter-spacing:-3px; opacity:0; animation:up 1.2s ease .7s forwards, flick 8s 3s infinite; text-shadow:0 0 80px #8b000022; }
-.intro-title em { color:#8b0000; font-style:normal; }
-@keyframes flick { 0%,94%,96.5%,100%{opacity:1} 95%{opacity:.3} 96%{opacity:.9} }
-.intro-rule { width:0; height:2px; background:#8b0000; margin:28px auto; animation:growW 1.2s ease 1.5s forwards; }
-.intro-dates { font-size:13px; letter-spacing:6px; color:#555; text-transform:uppercase; opacity:0; animation:up 1s ease 1.9s forwards; }
-.intro-by { margin-top:44px; font-size:12px; letter-spacing:4px; color:#777; text-transform:uppercase; opacity:0; animation:up 1s ease 2.3s forwards; }
-.intro-by span { color:#1a1a1a; font-weight:700; }
-.intro-powered { margin-top:10px; font-size:11px; letter-spacing:2px; color:#999; opacity:0; animation:up 1s ease 2.6s forwards; }
-.intro-powered span { color:#555; }
-.intro-btn { margin-top:52px; padding:15px 56px; background:transparent; border:2px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:12px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s; opacity:0; animation:up 1s ease 3s forwards; }
-.intro-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 30px #8b000033; }
-@keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-@keyframes growW { to{width:80px} }
-
-/* ══ PAGE 2 DRAMATIC ══ */
-#dramaticScreen { background:#f5f5f0; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; opacity:0; transition:opacity .8s ease; }
-#dramaticScreen.fade-in { opacity:1; }
-.dram-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,#f0e8e8 0%,#f5f5f0 70%); }
-.dram-content { position:relative; z-index:10; text-align:center; max-width:700px; padding:0 32px; }
-.dram-eyebrow { font-size:13px; letter-spacing:6px; color:#888; text-transform:uppercase; opacity:0; }
-.dram-stat { font-family:'Playfair Display',serif; font-size:clamp(16px,2.4vw,22px); color:#444; line-height:2.8; opacity:0; }
-.dram-stat .n { color:#8b0000; font-size:1.4em; font-weight:700; }
-.dram-stat .em { color:#1a1a1a; font-style:italic; }
-.dram-rule { width:0; height:2px; background:#8b0000; margin:40px auto; }
-.dram-final { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(18px,3vw,32px); color:#333; line-height:1.7; opacity:0; }
-.dram-final span { color:#8b0000; }
-.dram-btn { margin-top:52px; padding:15px 56px; background:transparent; border:2px solid #8b0000; color:#8b0000; font-family:'Courier Prime',monospace; font-size:12px; letter-spacing:5px; text-transform:uppercase; cursor:pointer; transition:all .4s; opacity:0; }
-.dram-btn:hover { background:#8b0000; color:#fff; box-shadow:0 0 30px #8b000033; }
-
-/* ══ PAGE 3 MAP ══ */
-#appScreen { flex-direction:column; z-index:1; }
-#map { position:absolute; inset:0; z-index:1; }
-
-.topbar { position:absolute; top:0; left:0; right:0; z-index:500; background:rgba(245,245,240,0.97); border-bottom:2px solid #ddd; display:flex; align-items:center; justify-content:space-between; padding:13px 22px; box-shadow:0 2px 12px rgba(0,0,0,0.08); }
-.tb-left h1 { font-size:13px; letter-spacing:4px; color:#8b0000; text-transform:uppercase; font-weight:700; }
-.tb-left p { font-size:11px; color:#777; letter-spacing:2px; margin-top:3px; }
-.tb-right { display:flex; gap:10px; align-items:center; }
-.tb-powered { font-size:10px; letter-spacing:1px; color:#999; }
-.tb-powered span { color:#555; }
-.tb-btn { padding:8px 18px; background:transparent; border:1.5px solid #ccc; color:#555; font-family:'Courier Prime',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all .2s; }
-.tb-btn:hover,.tb-btn.on { border-color:#8b0000; color:#8b0000; background:#fff3f3; }
-
-.legend { position:absolute; bottom:28px; left:20px; z-index:500; background:rgba(255,255,255,0.97); border:1.5px solid #ddd; padding:15px 19px; box-shadow:0 2px 12px rgba(0,0,0,0.1); }
-.leg-title { font-size:10px; letter-spacing:4px; color:#888; text-transform:uppercase; margin-bottom:12px; font-weight:700; }
-.leg-item { display:flex; align-items:center; gap:9px; margin-bottom:8px; font-size:12px; color:#444; }
-.leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.leg-div { height:1px; background:#eee; margin:8px 0; }
-.leg-count { font-size:10px; color:#888; letter-spacing:1px; }
-.leg-count span { color:#8b0000; font-weight:700; }
-
-/* ══ TIMELINE OVERLAY ══ */
-#tlOverlay {
-  position:absolute; inset:0; z-index:700;
-  background:rgba(245,245,240,0.93);
-  backdrop-filter:blur(6px);
-  display:none; flex-direction:column;
-  opacity:0; transition:opacity .4s ease;
-  pointer-events:none;
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#2a2a2a;
+  --bg2:#333333;
+  --surface:#3a3a3a;
+  --surface2:#404040;
+  --border:#555;
+  --border2:#666;
+  --text:#f0f0ec;
+  --text2:#bbb;
+  --text3:#888;
+  --red:#c0392b;
+  --red2:#8b0000;
+  --blue:#2471a3;
+  --orange:#d35400;
+  --green:#1e8449;
+  --bio:#9b59b6;
 }
-#tlOverlay.open { display:flex; pointer-events:all; }
-#tlOverlay.vis { opacity:1; }
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;overflow:hidden;}
+.screen{position:fixed;inset:0;display:none;}
+.screen.active{display:flex;}
 
-.tl-topbar {
-  position:absolute; top:0; left:0; right:0; height:60px;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 28px; z-index:10;
-  border-bottom:2px solid #e0e0e0;
-  background:rgba(255,255,255,0.6);
-}
-.tl-label { font-size:11px; letter-spacing:5px; color:#8b0000; text-transform:uppercase; font-weight:700; }
-.tl-close-btn { background:none; border:1.5px solid #ccc; color:#555; font-size:11px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; padding:7px 18px; font-family:'Courier Prime',monospace; transition:all .2s; }
-.tl-close-btn:hover { border-color:#8b0000; color:#8b0000; }
+/* PAGE 1 */
+#introScreen{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+.intro-grain{position:absolute;inset:0;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+.intro-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(139,0,0,0.15) 0%,transparent 60%);}
+.intro-content{position:relative;z-index:10;text-align:center;padding:0 24px;}
+.intro-label{font-size:11px;letter-spacing:6px;color:var(--text3);text-transform:uppercase;margin-bottom:28px;opacity:0;animation:up 1s ease .2s forwards;}
+.intro-title{font-family:'Playfair Display',serif;font-size:clamp(56px,10vw,110px);font-weight:400;color:var(--text);line-height:1;letter-spacing:-3px;opacity:0;animation:up 1.2s ease .6s forwards;}
+.intro-title em{color:var(--red);font-style:normal;}
+.intro-rule{width:0;height:1px;background:var(--red2);margin:24px auto;animation:growW 1.2s ease 1.4s forwards;}
+.intro-dates{font-size:12px;letter-spacing:5px;color:var(--text3);text-transform:uppercase;opacity:0;animation:up 1s ease 1.8s forwards;}
+.intro-by{margin-top:40px;font-size:11px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;opacity:0;animation:up 1s ease 2.2s forwards;}
+.intro-by span{color:var(--text);font-weight:700;}
+.intro-powered{margin-top:8px;font-size:10px;letter-spacing:2px;color:#666;opacity:0;animation:up 1s ease 2.5s forwards;}
+.intro-btn{margin-top:48px;padding:14px 52px;background:transparent;border:1.5px solid var(--red);color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;cursor:pointer;transition:all .3s;opacity:0;animation:up 1s ease 2.9s forwards;}
+.intro-btn:hover{background:var(--red);color:#fff;box-shadow:0 0 24px rgba(192,57,43,0.3);}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes growW{to{width:70px}}
 
-.tl-h-wrap {
-  flex:1; overflow-x:auto; overflow-y:hidden;
-  display:flex; align-items:center;
-  padding-top:60px;
-  scrollbar-width:thin; scrollbar-color:#ccc transparent;
-}
-.tl-h-wrap::-webkit-scrollbar { height:4px; }
-.tl-h-wrap::-webkit-scrollbar-thumb { background:#ccc; border-radius:2px; }
+/* PAGE 2 */
+#dramaticScreen{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;overflow:hidden;opacity:0;transition:opacity .8s ease;}
+#dramaticScreen.fade-in{opacity:1;}
+.dram-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(139,0,0,0.08) 0%,transparent 70%);}
+.dram-content{position:relative;z-index:10;text-align:center;max-width:680px;padding:0 32px;}
+.dram-eyebrow{font-size:12px;letter-spacing:6px;color:var(--text3);text-transform:uppercase;opacity:0;}
+.dram-stat{font-family:'Playfair Display',serif;font-size:clamp(15px,2.2vw,20px);color:var(--text2);line-height:2.9;opacity:0;}
+.dram-stat .n{color:var(--red);font-size:1.35em;font-weight:700;}
+.dram-stat .em{color:var(--text);font-style:italic;}
+.dram-rule{width:0;height:1px;background:var(--red2);margin:36px auto;}
+.dram-final{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(16px,2.6vw,28px);color:var(--text2);line-height:1.8;opacity:0;}
+.dram-final span{color:var(--red);}
+.dram-btn{margin-top:48px;padding:14px 52px;background:transparent;border:1.5px solid var(--border2);color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;cursor:pointer;transition:all .3s;opacity:0;}
+.dram-btn:hover{background:var(--red);color:#fff;border-color:var(--red);}
 
-.tl-track {
-  position:relative; display:flex; align-items:center;
-  height:100%; padding:0 100px; min-width:max-content;
-}
+/* PAGE 3 */
+#appScreen{flex-direction:column;z-index:1;}
+#map{position:absolute;inset:0;z-index:1;}
 
-.tl-spine {
-  position:absolute; top:50%; height:2px;
-  transform:translateY(-50%); pointer-events:none; z-index:0;
-  left:0; right:0;
-  background:linear-gradient(to right,transparent,#8b0000 2%,#c0392b 50%,#8b0000 98%,transparent);
-  box-shadow: 0 0 6px #8b000044, 0 0 14px #8b000022;
-}
+.topbar{position:absolute;top:0;left:0;right:0;z-index:500;background:rgba(42,42,42,0.97);border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:12px 22px;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.tb-left h1{font-size:12px;letter-spacing:3px;color:var(--red);text-transform:uppercase;font-weight:700;}
+.tb-left p{font-size:10px;color:var(--text3);letter-spacing:2px;margin-top:2px;}
+.tb-right{display:flex;gap:8px;align-items:center;}
+.tb-powered{font-size:9px;letter-spacing:1px;color:#555;}
+.tb-btn{padding:7px 16px;background:transparent;border:1.5px solid var(--border);color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.tb-btn:hover,.tb-btn.on{border-color:var(--red);color:var(--red);background:rgba(192,57,43,0.1);}
 
-.tl-node {
-  position:relative; display:flex; align-items:center;
-  margin:0 44px; cursor:pointer; z-index:2;
-  opacity:0; transform:scale(0.6);
-  transition:opacity .4s ease, transform .4s ease;
-}
-.tl-node.show { opacity:1; transform:scale(1); }
-.tl-node.above { flex-direction:column; justify-content:flex-end; align-self:flex-start; height:calc(50% - 5px); }
-.tl-node.below { flex-direction:column-reverse; justify-content:flex-start; align-self:flex-end; height:calc(50% - 5px); }
+.legend{position:absolute;bottom:26px;left:18px;z-index:500;background:rgba(42,42,42,0.97);border:1.5px solid var(--border);padding:14px 17px;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.leg-title{font-size:9px;letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;font-weight:700;}
+.leg-item{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px;color:var(--text2);}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.leg-div{height:1px;background:var(--border);margin:7px 0;}
+.leg-count{font-size:9px;color:var(--text3);letter-spacing:1px;}
+.leg-count span{color:var(--red);font-weight:700;}
 
-.tl-card {
-  width:180px; background:#fff; border:1.5px solid #e0e0e0;
-  overflow:hidden; transition:all .25s;
-  box-shadow:0 2px 8px rgba(0,0,0,0.07);
-}
-.tl-node:hover .tl-card, .tl-node.sel .tl-card {
-  border-color:#8b0000; background:#fff9f9;
-  box-shadow:0 4px 20px rgba(139,0,0,0.15);
-}
-.tl-card-img { width:100%; height:68px; object-fit:cover; filter:grayscale(40%) brightness(.85); display:block; transition:filter .3s; }
-.tl-node:hover .tl-card-img,.tl-node.sel .tl-card-img { filter:grayscale(10%) brightness(1); }
-.tl-card-body { padding:9px 11px 11px; }
-.tl-card-type { font-size:8px; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; font-weight:700; }
-.tl-card-year { font-size:8px; color:#888; letter-spacing:1px; margin-bottom:3px; }
-.tl-card-name { font-size:12px; color:#222; line-height:1.4; font-weight:700; }
-.tl-card-loc { font-size:8px; color:#888; margin-top:3px; }
+/* TIMELINE */
+#tlOverlay{position:absolute;inset:0;z-index:700;background:rgba(35,35,35,0.96);backdrop-filter:blur(8px);display:none;flex-direction:column;opacity:0;transition:opacity .4s ease;pointer-events:none;}
+#tlOverlay.open{display:flex;pointer-events:all;}
+#tlOverlay.vis{opacity:1;}
+.tl-topbar{position:absolute;top:0;left:0;right:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;z-index:10;border-bottom:1.5px solid var(--border);background:rgba(42,42,42,0.6);}
+.tl-label{font-size:10px;letter-spacing:5px;color:var(--red);text-transform:uppercase;font-weight:700;}
+.tl-close-btn{background:none;border:1.5px solid var(--border);color:var(--text2);font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:6px 16px;font-family:'IBM Plex Mono',monospace;transition:all .2s;}
+.tl-close-btn:hover{border-color:var(--red);color:var(--red);}
+.tl-h-wrap{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;padding-top:58px;scrollbar-width:thin;scrollbar-color:#555 transparent;}
+.tl-h-wrap::-webkit-scrollbar{height:4px;}
+.tl-h-wrap::-webkit-scrollbar-thumb{background:#555;border-radius:2px;}
+.tl-track{position:relative;display:flex;align-items:center;height:100%;padding:0 80px;min-width:max-content;}
+.tl-spine{position:absolute;top:50%;height:1.5px;transform:translateY(-50%);pointer-events:none;z-index:0;left:0;right:0;background:linear-gradient(to right,transparent,var(--red2) 2%,var(--red) 50%,var(--red2) 98%,transparent);box-shadow:0 0 8px rgba(139,0,0,0.4);}
+.tl-node{position:relative;display:flex;align-items:center;margin:0 36px;cursor:pointer;z-index:2;opacity:0;transform:scale(0.7);transition:opacity .4s ease,transform .4s ease;}
+.tl-node.show{opacity:1;transform:scale(1);}
+.tl-node.above{flex-direction:column;justify-content:flex-end;align-self:flex-start;height:calc(50% - 5px);}
+.tl-node.below{flex-direction:column-reverse;justify-content:flex-start;align-self:flex-end;height:calc(50% - 5px);}
+.tl-card{width:176px;background:var(--surface);border:1.5px solid var(--border);overflow:hidden;transition:all .25s;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.tl-node:hover .tl-card,.tl-node.sel .tl-card{border-color:var(--red);box-shadow:0 4px 18px rgba(192,57,43,0.25);}
+.tl-img-wrap{position:relative;width:100%;height:66px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tl-card-img{width:100%;height:66px;object-fit:cover;filter:grayscale(30%) brightness(.8);display:block;transition:filter .3s;}
+.tl-node:hover .tl-card-img,.tl-node.sel .tl-card-img{filter:grayscale(0%) brightness(1);}
+.tl-upload-btn{position:absolute;bottom:4px;right:4px;background:rgba(42,42,42,0.9);border:1px solid var(--border);color:var(--text2);font-size:8px;letter-spacing:1px;padding:3px 6px;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all .2s;text-transform:uppercase;z-index:5;}
+.tl-upload-btn:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.tl-no-img{font-size:8px;color:#555;letter-spacing:1px;text-align:center;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px;width:100%;height:100%;justify-content:center;}
+.tl-no-img:hover{color:var(--text2);background:var(--surface2);}
+.tl-no-img-icon{font-size:16px;}
+.tl-card-body{padding:8px 10px 10px;}
+.tl-card-type{font-size:7px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;font-weight:700;}
+.tl-card-year{font-size:7px;color:var(--text3);letter-spacing:1px;margin-bottom:2px;}
+.tl-card-name{font-size:11px;color:var(--text);line-height:1.3;font-weight:700;}
+.tl-card-loc{font-size:7px;color:var(--text3);margin-top:2px;}
+.tl-conn{width:1.5px;flex-shrink:0;min-height:24px;flex:1;max-height:80px;}
+.tl-node.above .tl-conn{background:linear-gradient(to bottom,rgba(192,57,43,0.05),rgba(192,57,43,0.6));}
+.tl-node.below .tl-conn{background:linear-gradient(to top,rgba(192,57,43,0.05),rgba(192,57,43,0.6));}
+.tl-node:hover .tl-conn,.tl-node.sel .tl-conn{background:linear-gradient(to bottom,rgba(192,57,43,0.1),var(--red));}
+.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;z-index:3;border:2px solid rgba(42,42,42,0.9);transition:transform .2s,box-shadow .2s;}
+.tl-node:hover .tl-dot,.tl-node.sel .tl-dot{transform:scale(1.9);}
 
-.tl-conn { width:2px; flex-shrink:0; min-height:28px; flex:1; max-height:90px; }
-.tl-node.above .tl-conn { background:linear-gradient(to bottom,rgba(139,0,0,0.05),rgba(139,0,0,0.7)); }
-.tl-node.below .tl-conn { background:linear-gradient(to top,rgba(139,0,0,0.05),rgba(139,0,0,0.7)); }
-.tl-node:hover .tl-conn,.tl-node.sel .tl-conn { background:linear-gradient(to bottom,rgba(139,0,0,0.1),#c0392b); }
+/* DETAIL CARD */
+.det-card{position:absolute;bottom:26px;left:50%;transform:translateX(-50%) translateY(14px);z-index:800;width:620px;max-width:calc(100vw - 36px);background:rgba(42,42,42,0.99);border:1.5px solid var(--border);border-top:3px solid var(--red);opacity:0;pointer-events:none;transition:all .3s ease;display:flex;flex-direction:column;max-height:58vh;box-shadow:0 8px 36px rgba(0,0,0,0.4);}
+.det-card.visible{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);}
+.det-hdr{padding:18px 22px 0;flex-shrink:0;background:rgba(42,42,42,0.99);}
+.det-close{position:absolute;top:13px;right:16px;background:none;border:none;color:#666;font-size:17px;cursor:pointer;transition:color .2s;}
+.det-close:hover{color:var(--red);}
+.det-type{font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.det-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);font-weight:700;}
+.det-meta{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;margin-bottom:14px;}
+.det-scroll{overflow-y:auto;padding:0 22px 18px;flex:1;}
+.det-scroll::-webkit-scrollbar{width:3px;}
+.det-scroll::-webkit-scrollbar-thumb{background:#555;}
+.det-photos-section{margin-bottom:14px;}
+.det-photos-label{font-size:8px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:7px;font-weight:700;}
+.det-photos{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start;}
+.det-photo{flex-shrink:0;width:96px;height:70px;object-fit:cover;filter:grayscale(20%) brightness(.85);border:1.5px solid var(--border);cursor:pointer;transition:filter .3s,border-color .2s;}
+.det-photo:hover{filter:grayscale(0%) brightness(1);border-color:var(--red);}
+.upload-slot{width:96px;height:70px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;background:var(--surface);gap:3px;}
+.upload-slot:hover{border-color:var(--red);background:rgba(192,57,43,0.1);}
+.upload-slot-icon{font-size:18px;color:#555;transition:color .2s;}
+.upload-slot:hover .upload-slot-icon{color:var(--red);}
+.upload-slot-txt{font-size:7px;letter-spacing:1px;color:#555;text-transform:uppercase;text-align:center;line-height:1.4;}
+.upload-slot:hover .upload-slot-txt{color:var(--red);}
+.hidden-file-input{display:none;}
+.uploaded-photo-wrap{position:relative;}
+.uploaded-photo-wrap .remove-photo{position:absolute;top:-5px;right:-5px;width:15px;height:15px;background:var(--red);color:#fff;border:none;border-radius:50%;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.uploaded-photo-wrap:hover .remove-photo{opacity:1;}
+.det-body{font-size:13px;color:var(--text2);line-height:2.1;}
+.det-forensic{margin-top:12px;padding:11px 13px;background:var(--surface);border:1.5px solid var(--border);border-left:3px solid var(--red);}
+.det-forensic-label{font-size:8px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.det-forensic-text{font-size:12px;color:var(--text2);line-height:1.9;}
+.det-vic{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.det-vl{font-size:8px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.det-vv{font-size:12px;color:var(--text2);line-height:1.9;font-style:italic;}
 
-.tl-dot {
-  width:13px; height:13px; border-radius:50%;
-  flex-shrink:0; z-index:3;
-  border:2px solid rgba(0,0,0,0.1);
-  transition:transform .2s,box-shadow .2s;
-}
-.tl-node:hover .tl-dot,.tl-node.sel .tl-dot { transform:scale(1.9); }
+/* SOURCES */
+#sourcesPanel{position:absolute;bottom:0;left:0;right:0;z-index:800;background:rgba(42,42,42,0.99);border-top:1.5px solid var(--border);max-height:0;overflow:hidden;transition:max-height .4s ease;box-shadow:0 -4px 16px rgba(0,0,0,0.3);}
+#sourcesPanel.open{max-height:260px;}
+.src-inner{padding:20px 26px 24px;overflow-y:auto;max-height:260px;}
+.src-inner::-webkit-scrollbar{width:3px;}
+.src-title{font-size:9px;letter-spacing:5px;color:var(--red);text-transform:uppercase;margin-bottom:16px;font-weight:700;}
+.src-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.src-item{font-size:11px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--surface);border:1px solid var(--border);}
+.src-item .src-cat{color:var(--red);display:block;font-size:9px;margin-bottom:3px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.src-close{float:right;background:none;border:none;color:#555;font-size:15px;cursor:pointer;margin-top:-3px;}
+.src-close:hover{color:var(--red);}
 
-/* ══ DETAIL CARD ══ */
-.det-card {
-  position:absolute; bottom:28px; left:50%;
-  transform:translateX(-50%) translateY(16px);
-  z-index:800; width:620px; max-width:calc(100vw - 40px);
-  background:rgba(255,255,255,0.99); border:1.5px solid #e0e0e0; border-top:3px solid #8b0000;
-  opacity:0; pointer-events:none; transition:all .3s ease;
-  display:flex; flex-direction:column; max-height:60vh;
-  box-shadow:0 8px 40px rgba(0,0,0,0.15);
-}
-.det-card.visible { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
-.det-hdr { padding:20px 24px 0; flex-shrink:0; background:#fff; }
-.det-close { position:absolute; top:14px; right:18px; background:none; border:none; color:#999; font-size:18px; cursor:pointer; transition:color .2s; }
-.det-close:hover { color:#8b0000; }
-.det-type { font-size:10px; letter-spacing:4px; text-transform:uppercase; margin-bottom:6px; font-weight:700; }
-.det-title { font-family:'Playfair Display',serif; font-size:24px; color:#1a1a1a; font-weight:700; }
-.det-meta { font-size:11px; color:#888; letter-spacing:2px; text-transform:uppercase; margin-top:4px; margin-bottom:16px; }
-.det-scroll { overflow-y:auto; padding:0 24px 20px; flex:1; }
-.det-scroll::-webkit-scrollbar { width:3px; }
-.det-scroll::-webkit-scrollbar-thumb { background:#ddd; }
+/* Map popup */
+.murder-popup .leaflet-popup-content-wrapper{background:var(--surface);border:1.5px solid var(--border);border-radius:0;box-shadow:0 4px 16px rgba(0,0,0,0.4);}
+.murder-popup .leaflet-popup-tip{background:var(--border);}
+.murder-popup .leaflet-popup-content{margin:11px 14px;font-family:'IBM Plex Mono',monospace;}
+.mp-name{font-size:12px;color:var(--text);margin-bottom:3px;font-weight:700;}
+.mp-date{font-size:9px;color:var(--text3);letter-spacing:1px;}
+.mp-note{font-size:9px;color:var(--red);margin-top:3px;font-style:italic;}
 
-/* Photo upload area */
-.det-photos-section { margin-bottom:16px; }
-.det-photos-label { font-size:9px; letter-spacing:3px; color:#888; text-transform:uppercase; margin-bottom:8px; font-weight:700; }
-.det-photos { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; }
-.det-photo { flex-shrink:0; width:100px; height:74px; object-fit:cover; filter:grayscale(30%) brightness(.9); border:1.5px solid #e0e0e0; cursor:pointer; transition:filter .3s,border-color .2s; }
-.det-photo:hover { filter:grayscale(0%) brightness(1); border-color:#8b0000; }
-.upload-slot {
-  width:100px; height:74px; border:2px dashed #ccc;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  cursor:pointer; transition:all .2s; flex-shrink:0; background:#fafafa;
-  gap:4px;
-}
-.upload-slot:hover { border-color:#8b0000; background:#fff3f3; }
-.upload-slot-icon { font-size:20px; color:#ccc; transition:color .2s; }
-.upload-slot:hover .upload-slot-icon { color:#8b0000; }
-.upload-slot-txt { font-size:8px; letter-spacing:1px; color:#bbb; text-transform:uppercase; text-align:center; line-height:1.4; }
-.upload-slot:hover .upload-slot-txt { color:#8b0000; }
-.hidden-file-input { display:none; }
-.uploaded-photo-wrap { position:relative; }
-.uploaded-photo-wrap .remove-photo {
-  position:absolute; top:-5px; right:-5px; width:16px; height:16px;
-  background:#8b0000; color:#fff; border:none; border-radius:50%;
-  font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  opacity:0; transition:opacity .2s;
-}
-.uploaded-photo-wrap:hover .remove-photo { opacity:1; }
-
-.det-body { font-size:14px; color:#333; line-height:2.1; }
-.det-forensic { margin-top:14px; padding:12px 14px; background:#fafafa; border:1.5px solid #f0e0e0; border-left:3px solid #8b0000; }
-.det-forensic-label { font-size:9px; letter-spacing:3px; color:#8b0000; text-transform:uppercase; margin-bottom:6px; font-weight:700; }
-.det-forensic-text { font-size:13px; color:#555; line-height:1.9; }
-.det-vic { margin-top:14px; padding-top:14px; border-top:1px solid #f0f0f0; }
-.det-vl { font-size:9px; letter-spacing:3px; color:#888; text-transform:uppercase; margin-bottom:6px; font-weight:700; }
-.det-vv { font-size:13px; color:#555; line-height:1.9; font-style:italic; }
-
-/* Sources panel */
-#sourcesPanel {
-  position:absolute; bottom:0; left:0; right:0; z-index:800;
-  background:rgba(255,255,255,0.99); border-top:2px solid #ddd;
-  max-height:0; overflow:hidden; transition:max-height .4s ease;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.08);
-}
-#sourcesPanel.open { max-height:280px; }
-.src-inner { padding:22px 28px 26px; overflow-y:auto; max-height:280px; }
-.src-inner::-webkit-scrollbar { width:3px; }
-.src-title { font-size:10px; letter-spacing:5px; color:#8b0000; text-transform:uppercase; margin-bottom:18px; font-weight:700; }
-.src-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-.src-item { font-size:11px; color:#555; line-height:1.7; }
-.src-item span { color:#333; display:block; font-size:10px; margin-bottom:2px; font-weight:700; letter-spacing:1px; }
-.src-close { float:right; background:none; border:none; color:#ccc; font-size:16px; cursor:pointer; margin-top:-4px; }
-.src-close:hover { color:#8b0000; }
-
-/* murder popup */
-.murder-popup .leaflet-popup-content-wrapper { background:#fff; border:1.5px solid #e0e0e0; border-radius:0; box-shadow:0 4px 20px rgba(0,0,0,0.12); }
-.murder-popup .leaflet-popup-tip { background:#e0e0e0; }
-.murder-popup .leaflet-popup-content { margin:12px 16px; font-family:'Courier Prime',monospace; }
-.mp-name { font-size:13px; color:#1a1a1a; margin-bottom:4px; font-weight:700; }
-.mp-date { font-size:10px; color:#888; letter-spacing:1px; }
-.mp-note { font-size:10px; color:#8b0000; margin-top:4px; font-style:italic; }
-
-/* lightbox */
-#lb { display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; flex-direction:column; gap:14px; }
-#lb.open { display:flex; }
-#lb-img { max-width:82vw; max-height:74vh; object-fit:contain; }
-#lb-cap { font-size:11px; color:#bbb; letter-spacing:2px; text-align:center; max-width:500px; }
-#lb-x { position:absolute; top:20px; right:24px; background:none; border:none; color:#888; font-size:24px; cursor:pointer; }
-#lb-x:hover { color:#fff; }
-.leaflet-container { background:#e8e8e8 !important; }
-
-@keyframes dashMove { to { stroke-dashoffset:-20; } }
-.story-path { animation:dashMove 1.5s linear infinite; }
+/* Lightbox */
+#lb{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.95);align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#lb.open{display:flex;}
+#lb-img{max-width:80vw;max-height:72vh;object-fit:contain;}
+#lb-cap{font-size:10px;color:#888;letter-spacing:2px;text-align:center;max-width:480px;}
+#lb-x{position:absolute;top:18px;right:22px;background:none;border:none;color:#666;font-size:22px;cursor:pointer;}
+#lb-x:hover{color:#fff;}
+.leaflet-container{background:#2a2a2a !important;}
+@keyframes dashMove{to{stroke-dashoffset:-20;}}
+.story-path{animation:dashMove 2s linear infinite;}
 </style>
 </head>
 <body>
@@ -253,13 +193,14 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
 <!-- PAGE 1 -->
 <div class="screen active" id="introScreen">
   <div class="intro-bg"></div>
-  <div class="grain"></div>
+  <div class="intro-grain"></div>
   <div class="intro-content">
+    <div class="intro-label">True Crime — Case Study</div>
     <div class="intro-title">Ted <em>Bundy</em></div>
     <div class="intro-rule"></div>
     <div class="intro-dates">November 24, 1946 &nbsp;—&nbsp; January 24, 1989</div>
-    <div class="intro-by">By <span>David Valentin</span>, <span>Kahari Bradley</span> &amp; <span>Jhostin Bonifacio</span></div>
-    <div class="intro-powered">Powered by <span>OpenStreetMap</span> &amp; <span>Leaflet.js</span></div>
+    <div class="intro-by">By <span>David Romero</span>, <span>Kahari Bradley</span> &amp; <span>Jhostin Bonifacio</span></div>
+    <div class="intro-powered">Powered by OpenStreetMap &amp; Leaflet.js</div>
     <button class="intro-btn" onclick="goDramatic()">Enter The Case &nbsp;→</button>
   </div>
 </div>
@@ -268,11 +209,11 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
 <div class="screen" id="dramaticScreen">
   <div class="dram-bg"></div>
   <div class="dram-content">
-    <div class="dram-eyebrow" id="de">A Case That Shook America</div>
+    <div class="dram-eyebrow" id="de">A Case That Shocked America</div>
     <div class="dram-stat" id="ds">
       He confessed to <span class="n">30</span> murders.<br>
-      Investigators believe the true number exceeded <span class="n">100.</span><br>
-      He escaped custody <span class="em">twice.</span><br>
+      Investigators believe the real number was over <span class="n">100.</span><br>
+      He escaped from prison <span class="em">twice.</span><br>
       He operated across <span class="n">7</span> states between 1974 and 1978.
     </div>
     <div class="dram-rule" id="dr"></div>
@@ -292,18 +233,18 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
       <p>Active 1974–1978 &nbsp;·&nbsp; 30 confirmed murders &nbsp;·&nbsp; 7 states</p>
     </div>
     <div class="tb-right">
-      <div class="tb-powered">Powered by <span>OpenStreetMap</span> &amp; <span>Leaflet.js</span></div>
-      <button class="tb-btn" onclick="toggleSources()">📄 &nbsp;Sources</button>
-      <button class="tb-btn" id="tlBtn" onclick="toggleTL()">☰ &nbsp;Timeline</button>
+      <div class="tb-powered">OpenStreetMap &amp; Leaflet.js</div>
+      <button class="tb-btn" onclick="toggleSources()">Sources</button>
+      <button class="tb-btn" id="tlBtn" onclick="toggleTL()">☰ Timeline</button>
     </div>
   </div>
 
   <div id="map"></div>
 
   <div class="legend">
-    <div class="leg-title">Map Legend</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#8b0000;width:8px;height:8px"></div>Confirmed Murder</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#c0392b"></div>Murder / Crime Event</div>
+    <div class="leg-title">Legend</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6"></div>Background / Bio</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#c0392b"></div>Murder / Crime</div>
     <div class="leg-item"><div class="leg-dot" style="background:#2471a3"></div>Arrest</div>
     <div class="leg-item"><div class="leg-dot" style="background:#d35400"></div>Escape</div>
     <div class="leg-item"><div class="leg-dot" style="background:#1e8449"></div>Trial / Execution</div>
@@ -311,11 +252,10 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
     <div class="leg-count">All <span>30</span> confirmed murders pinned</div>
   </div>
 
-  <!-- TIMELINE OVERLAY -->
   <div id="tlOverlay">
     <div class="tl-topbar">
-      <div class="tl-label">Chronological Crime Timeline — Scroll to explore →</div>
-      <button class="tl-close-btn" onclick="toggleTL()">✕ &nbsp;Close</button>
+      <div class="tl-label">Chronological Timeline — Scroll to explore →</div>
+      <button class="tl-close-btn" onclick="toggleTL()">✕ Close</button>
     </div>
     <div class="tl-h-wrap">
       <div class="tl-track" id="tlTrack">
@@ -324,7 +264,6 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
     </div>
   </div>
 
-  <!-- DETAIL CARD -->
   <div class="det-card" id="detCard">
     <div class="det-hdr">
       <button class="det-close" onclick="closeDet()">✕</button>
@@ -334,131 +273,166 @@ html,body { height:100%; background:#f5f5f0; color:#1a1a1a; font-family:'Courier
     </div>
     <div class="det-scroll">
       <div class="det-photos-section">
-        <div class="det-photos-label">📷 Photos</div>
+        <div class="det-photos-label">📷 Photos — click to enlarge · upload your own with the + button</div>
         <div class="det-photos" id="dPhotos"></div>
       </div>
       <div class="det-body" id="dBody"></div>
       <div class="det-forensic" id="dForensic" style="display:none">
-        <div class="det-forensic-label">🔬 Forensic Science Applied</div>
+        <div class="det-forensic-label">🔬 Forensic Science Used</div>
         <div class="det-forensic-text" id="dForensicText"></div>
       </div>
       <div class="det-vic" id="dVic" style="display:none"></div>
     </div>
   </div>
 
-  <!-- SOURCES PANEL -->
   <div id="sourcesPanel">
     <div class="src-inner">
       <button class="src-close" onclick="toggleSources()">✕</button>
       <div class="src-title">Sources & Citations</div>
       <div class="src-grid">
-        <div class="src-item"><span>Primary Source</span>Rule, Ann. <em>The Stranger Beside Me.</em> W.W. Norton & Company, 1980.</div>
-        <div class="src-item"><span>Primary Source</span>Michaud, Stephen G. & Aynesworth, Hugh. <em>The Only Living Witness.</em> Authorlink Press, 1999.</div>
-        <div class="src-item"><span>Government Record</span>FBI Behavioral Science Unit Case Files. Ted Bundy Investigation, 1974–1989.</div>
-        <div class="src-item"><span>Forensic Science</span>Souviron, R. (1979). Bite mark evidence in <em>State v. Bundy.</em> Journal of Forensic Odontology.</div>
-        <div class="src-item"><span>Encyclopedia</span>Britannica. "Ted Bundy." Encyclopædia Britannica Online. britannica.com/biography/Ted-Bundy</div>
-        <div class="src-item"><span>Digital Archive</span>Florida Department of Law Enforcement. State Archives — Bundy Case Records. 1975–1989.</div>
-        <div class="src-item"><span>News Archive</span>New York Times. "Bundy Is Put to Death in Florida After Admitting Trail of Killings." Jan 25, 1989.</div>
-        <div class="src-item"><span>Map & GIS Data</span>OpenStreetMap contributors. openstreetmap.org — Map tiles by CartoDB (light_all).</div>
-        <div class="src-item"><span>Photo Credits</span>Florida State Archives (Public Domain). Wikipedia Commons — CC0/Public Domain images only.</div>
+        <div class="src-item"><span class="src-cat">Book</span>Rule, Ann. <em>The Stranger Beside Me.</em> W.W. Norton, 1980.</div>
+        <div class="src-item"><span class="src-cat">Book</span>Michaud & Aynesworth. <em>The Only Living Witness.</em> Authorlink, 1999.</div>
+        <div class="src-item"><span class="src-cat">Government</span>FBI Behavioral Science Unit — Bundy Case Files, 1974–1989.</div>
+        <div class="src-item"><span class="src-cat">Forensics</span>Souviron, R. (1979). Bite mark evidence in <em>State v. Bundy.</em></div>
+        <div class="src-item"><span class="src-cat">Encyclopedia</span>Britannica — "Ted Bundy." britannica.com/biography/Ted-Bundy</div>
+        <div class="src-item"><span class="src-cat">Archive</span>Florida Dept. of Law Enforcement — Bundy Records, 1975–1989.</div>
+        <div class="src-item"><span class="src-cat">News</span>New York Times. "Bundy Is Put to Death in Florida." Jan 25, 1989.</div>
+        <div class="src-item"><span class="src-cat">Map Data</span>OpenStreetMap contributors — CartoDB light_all tiles.</div>
+        <div class="src-item"><span class="src-cat">Photos</span>Florida State Archives (Public Domain) &amp; Wikipedia Commons CC0.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- LIGHTBOX -->
 <div id="lb">
   <button id="lb-x" onclick="closeLB()">✕</button>
   <img id="lb-img" src="" alt="">
   <div id="lb-cap"></div>
 </div>
-
 <input type="file" id="globalFileInput" class="hidden-file-input" accept="image/*" multiple>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const TC={crime:"#c0392b",arrest:"#2471a3",escape:"#d35400",trial:"#1e8449"};
-const TL={crime:"Murder / Crime",arrest:"Arrest",escape:"Escape",trial:"Trial / Execution"};
+// ── GitHub image base URL ──────────────────────────────────────────────────
+const GH = "https://raw.githubusercontent.com/valentinedavid346-bot/texbundy-/main/";
 
-// Photo storage: keyed by event id → array of {src, cap}
-const uploadedPhotos = {};
+// Helper: returns GitHub URL for a filename, falls back to Unsplash placeholder
+function gh(file, fallback){ return GH + file; }
 
-const IMG={
-  bundy80:"https://live.staticflickr.com/65535/51205876892_f1c5d0e5c6_n.jpg",
-  bundy78:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Ted_Bundy_mug_shot.jpg",
-  seattle:"https://images.unsplash.com/photo-1502175353174-a7a70e73b362?w=400&q=80",
-  sammamish:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
-  slc:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80",
-  aspen:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80",
-  glenwood:"https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&q=80",
-  fsu:"https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=80",
-  pensacola:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
-  miami:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80",
-  orlando:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80",
-  prison:"https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&q=80",
+const TC={bio:"#9b59b6",crime:"#c0392b",arrest:"#2471a3",escape:"#d35400",trial:"#1e8449"};
+const TL={bio:"Background",crime:"Murder / Crime",arrest:"Arrest",escape:"Escape",trial:"Trial / Execution"};
+
+const uploadedPhotos={};
+const tlUploadedImgs={};
+
+// Fallback Unsplash images if GitHub ones fail
+const FB={
+  birth:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&q=80",
+  childhood:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80",
+  college:"https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80",
+  first_murders:"https://images.unsplash.com/photo-1502175353174-a7a70e73b362?w=400&q=80",
+  lake_sammamish:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
+  utah_colorado:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80",
+  first_arrest:"https://live.staticflickr.com/65535/51205876892_f1c5d0e5c6_n.jpg",
+  escape_1:"https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80",
+  escape_2:"https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&q=80",
+  chi_omega:"https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=80",
+  kimberly_leach:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Ted_Bundy_mug_shot.jpg",
+  final_arrest:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+  chi_omega_trial:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80",
+  leach_trial:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80",
+  execution:"https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&q=80",
 };
 
+// Each event uses GitHub image first, fallback if it 404s
 const events=[
-  {id:1,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",thumb:IMG.seattle,
-   photos:[{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Florida State Archive, Public Domain)"},{src:IMG.seattle,cap:"Seattle, WA — where Bundy's killing spree began"}],
-   body:"On January 4, 1974, Bundy attacked 21-year-old Joni Lenz in her Seattle basement bedroom, beating her with a metal rod. She survived with permanent brain damage. His first confirmed murder was Linda Ann Healy, a University of Washington student, abducted February 1, 1974. Bundy posed as an injured man with his arm in a sling, asking women for help before overpowering them.",
-   forensic:"Investigators used fingerprint analysis and tire track impressions from VW Beetle tires to build early physical evidence. Witness composite sketches led to the first published description of 'Ted.' Hair and fiber samples from victim recovery sites were analyzed using microscopy — an early application of trace evidence science.",
+  {id:0,year:"Nov 24, 1946",title:"Birth",location:"Burlington, Vermont",lat:44.4759,lng:-73.2121,type:"bio",
+   ghImg:"birth.jpg",fbImg:FB.birth,
+   photos:[{src:GH+"birth.jpg",fb:FB.birth,cap:"Burlington, Vermont — Bundy's birthplace"}],
+   body:"Theodore Robert Cowell was born on November 24, 1946, in Burlington, Vermont. His mother, Louise Cowell, was unmarried and gave birth to him at a home for unwed mothers. His father was never officially identified. From the very beginning, his family hid the truth about who he really was.",
+   forensic:null,victims:null},
+  {id:1,year:"1946–1965",title:"Childhood & Early Life",location:"Tacoma, Washington",lat:47.2529,lng:-122.4443,type:"bio",
+   ghImg:"childhood.jpg",fbImg:FB.childhood,
+   photos:[{src:GH+"childhood.jpg",fb:FB.childhood,cap:"Tacoma, WA — where Bundy grew up"}],
+   body:"Bundy grew up believing his grandparents were his real parents and that his mother was his older sister. When he was four, the family moved to Tacoma, Washington. His mother later married Johnnie Bundy, and Ted took his stepfather's last name. Neighbors and teachers remembered him as polite and charming. However, as a child he showed early warning signs — his cousin recalled waking up one morning completely surrounded by knives that Bundy had placed around her while she slept.",
+   forensic:null,victims:null},
+  {id:2,year:"1965–1973",title:"Teen & College Years",location:"Seattle, Washington",lat:47.6562,lng:-122.3087,type:"bio",
+   ghImg:"college.jpg",fbImg:FB.college,
+   photos:[{src:GH+"college.jpg",fb:FB.college,cap:"University of Washington — where Bundy studied psychology"}],
+   body:"Bundy attended the University of Washington, where he studied psychology. He was known as smart, outgoing, and good-looking. He worked at a suicide crisis hotline — ironically helping people in mental distress. He also briefly studied law, which would later help him represent himself in court. People who knew him during this time were shocked when he was arrested — he seemed completely normal to everyone around him.",
+   forensic:null,victims:null},
+  {id:3,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",
+   ghImg:"first_murders.jpg",fbImg:FB.first_murders,
+   photos:[{src:GH+"first_murders.jpg",fb:FB.first_murders,cap:"Seattle, WA — where Bundy's killing spree began"},{src:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Ted_Bundy_mug_shot.jpg",cap:"Ted Bundy — 1978 mugshot (Public Domain)"}],
+   body:"On January 4, 1974, Bundy attacked 21-year-old Joni Lenz in her Seattle apartment while she slept, beating her with a metal rod. She survived but suffered permanent brain damage. His first confirmed murder was Linda Ann Healy, a University of Washington student abducted on February 1, 1974. His method: he would fake an injury — arm in a sling or a fake cast — and ask women for help. Once they were close, he would overpower them.",
+   forensic:"Detectives used fingerprint analysis and tire track impressions from Bundy's VW Beetle to build early physical evidence. Witnesses gave descriptions that led to the first composite sketch of 'Ted.' Hair and fiber samples from victim recovery sites were studied under microscopes — one of the earliest uses of trace evidence science in the Pacific Northwest.",
    victims:"Joni Lenz (survived), Linda Ann Healy, Donna Manson, Susan Rancourt, Roberta Parks, Brenda Ball, Georgeann Hawkins"},
-  {id:2,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",thumb:IMG.sammamish,
-   photos:[{src:IMG.sammamish,cap:"Lake Sammamish State Park — where Bundy abducted two women in broad daylight"}],
-   body:"In one of his most brazen acts, Bundy abducted two women from a crowded public beach on the same afternoon — introducing himself as 'Ted' and asking for help with his sailboat. Multiple witnesses gave investigators their first real description of the suspect. Both women were murdered, their remains found months later.",
-   forensic:"The recovery site yielded skeletal remains, requiring forensic anthropology to establish identity through dental record comparison — an early use of forensic odontology in the Pacific Northwest. Ballistic analysis ruled out gunshot wounds, and entomology helped estimate time of death.",
+  {id:4,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",
+   ghImg:"lake_sammamish.jpg",fbImg:FB.lake_sammamish,
+   photos:[{src:GH+"lake_sammamish.jpg",fb:FB.lake_sammamish,cap:"Lake Sammamish State Park — crowded public beach where Bundy struck"}],
+   body:"This was one of Bundy's most daring attacks. In a single afternoon, at a crowded public beach, he abducted two different women hours apart — introducing himself as 'Ted' and asking each one to help him with his sailboat. Multiple witnesses saw him, giving police their best description yet. Both women were later found murdered.",
+   forensic:"The recovery site required forensic anthropology — identifying victims through dental records because only skeletal remains were found. Forensic entomology (the study of insects on remains) helped estimate how long the bodies had been there. This case gave detectives their first real suspect name and description.",
    victims:"Janice Ott, Denise Naslund"},
-  {id:3,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",thumb:IMG.slc,
-   photos:[{src:IMG.slc,cap:"Salt Lake City — where Bundy enrolled in law school"},{src:IMG.bundy78,cap:"Ted Bundy — 1978 (Public Domain)"}],
-   body:"After relocating to the University of Utah Law School, Bundy continued his killing spree across Utah, Colorado, and Idaho. He murdered at least 9 more women, several taken from ski resorts. His youngest confirmed victim, Lynette Culver, was only 12 years old.",
-   forensic:"Investigators linked cases across state lines using early cross-jurisdictional DNA analysis and blood typing. Soil samples and pollen trace evidence connected victims to specific dump sites. The FBI's newly formed Behavioral Science Unit began criminal profiling, creating the first psychological profile of an organized serial killer.",
+  {id:5,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",
+   ghImg:"utah_colorado.jpg",fbImg:FB.utah_colorado,
+   photos:[{src:GH+"utah_colorado.jpg",fb:FB.utah_colorado,cap:"Salt Lake City — where Bundy enrolled in law school"}],
+   body:"After moving to Utah for law school, Bundy kept killing. Over the next year he murdered at least 9 more women across Utah, Colorado, and Idaho — many taken from ski resorts and college campuses. His youngest confirmed victim during this period was Lynette Culver, only 12 years old. His law school enrollment gave him a respectable cover while police had no idea the killer lived so openly among them.",
+   forensic:"The FBI's newly created Behavioral Science Unit began building a criminal profile — the first psychological description of what kind of person commits these crimes. This was one of the first times criminal profiling was used on a serial killer case. Investigators also began cross-referencing cases across state lines using blood typing and soil and pollen trace analysis.",
    victims:"Nancy Wilcox, Melissa Smith, Laura Aime, Debra Kent, Caryn Campbell, Julie Cunningham, Denise Oliverson, Lynette Culver (age 12), Susan Curtis"},
-  {id:4,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",thumb:IMG.bundy80,
-   photos:[{src:IMG.bundy80,cap:"Ted Bundy — official mugshot, Feb 1980 (Florida State Archive, Public Domain)"}],
-   body:"Utah Highway Patrol Officer Bob Hayward spotted Bundy's VW Beetle driving suspiciously. Officers found burglary tools, a ski mask, rope, handcuffs, wire, and an ice pick. Victim Carol DaRonch, who had escaped his attack, identified him in a lineup, leading to a kidnapping conviction.",
-   forensic:"A forensic lineup (live identification) was used — Carol DaRonch positively identified Bundy, a key application of eyewitness forensic procedure. The physical evidence inventory (rope, handcuffs, ice pick) demonstrated premeditation — important in both criminology and courtroom forensics.",
+  {id:6,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",
+   ghImg:"first_arrest.jpg",fbImg:FB.first_arrest,
+   photos:[{src:GH+"first_arrest.jpg",fb:FB.first_arrest,cap:"Ted Bundy — official mugshot (Florida State Archive, Public Domain)"}],
+   body:"A Utah Highway Patrol officer pulled over Bundy's VW Beetle after it was driving suspiciously late at night. Inside, police found rope, handcuffs, a ski mask, wire, and an ice pick — a kidnapping kit. One of his surviving victims, Carol DaRonch, picked him out of a police lineup. He was convicted of kidnapping and sent to prison — but not for long.",
+   forensic:"A forensic lineup was used — Carol DaRonch identified Bundy in person from a group of men. This type of eyewitness identification is a standard forensic tool. The items found in his car proved clear planning and premeditation, which is critical evidence in both forensic science and criminal law.",
    victims:"Carol DaRonch (survived)"},
-  {id:5,year:"Jun 7, 1977",title:"Escape #1 — Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",thumb:IMG.aspen,
-   photos:[{src:IMG.aspen,cap:"Aspen, Colorado — Bundy jumped from the second-floor courthouse window"}],
-   body:"While being held for murder in Colorado, Bundy was allowed to use the courthouse law library. Left briefly alone, he opened a second-floor window and jumped to the ground, fleeing into the mountains. He survived 8 days in the wilderness before being recaptured — thinner, frostbitten, and disoriented.",
-   forensic:"Post-capture forensic evaluation assessed his physical condition. Wilderness survival evidence (campsites, stolen food) was catalogued. This escape exposed major security gaps later corrected nationwide — a direct impact of forensic security science on prison policy reform.",
+  {id:7,year:"Jun 7, 1977",title:"Escape #1 — Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",
+   ghImg:"escape_1.jpg",fbImg:FB.escape_1,
+   photos:[{src:GH+"escape_1.jpg",fb:FB.escape_1,cap:"Aspen, Colorado — Bundy jumped from the second-floor library window"}],
+   body:"While being held in Colorado on murder charges, Bundy was allowed to use the courthouse law library to help prepare his own defense. Left alone briefly, he opened a second-floor window and jumped to the street, then fled into the mountains. He survived alone in the wilderness for 8 days before being caught — thin, cold, and disoriented.",
+   forensic:"After his recapture, a medical exam documented his physical condition. His campsites and stolen food were catalogued as evidence. This escape directly led to nationwide changes in how dangerous prisoners are supervised in courthouses — a real-world example of how forensic security science improves public safety.",
    victims:null},
-  {id:6,year:"Dec 30, 1977",title:"Escape #2 — Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",thumb:IMG.glenwood,
-   photos:[{src:IMG.glenwood,cap:"Glenwood Springs, Colorado — where Bundy made his most audacious escape"}],
-   body:"Bundy starved himself 35 pounds lighter over months. Using a smuggled hacksaw blade, he carved a hole through his cell ceiling while a Christmas party covered any noise. He crawled through, dropped into a vacant jailer's apartment, dressed in civilian clothes, and walked out the front door. He wasn't discovered missing for 15 hours.",
-   forensic:"Post-escape forensic analysis of the cell revealed contraband concealment methods. The hacksaw blade showed patterns consistent with repeated use over months. Security forensics later mandated new cell inspection protocols across U.S. correctional facilities based on this case.",
+  {id:8,year:"Dec 30, 1977",title:"Escape #2 — Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",
+   ghImg:"escape_2.jpg",fbImg:FB.escape_2,
+   photos:[{src:GH+"escape_2.jpg",fb:FB.escape_2,cap:"Glenwood Springs, Colorado — site of his most planned escape"}],
+   body:"Over several months, Bundy deliberately lost 35 pounds so he could fit through a small hole. Using a smuggled hacksaw blade, he quietly cut through the ceiling of his cell while a loud Christmas party covered the sound. He crawled through, dropped into a guard's empty apartment, changed into civilian clothes, and walked out the front door. Guards didn't notice he was gone for 15 hours.",
+   forensic:"Forensic analysis of his cell showed the ceiling was cut over a long period — months of careful planning. The hacksaw blade showed signs of repeated use. This case completely changed how jails inspect cells and monitor inmate weight, both of which are now standard correctional procedures in the US.",
    victims:null},
-  {id:7,year:"Jan 15, 1978",title:"Chi Omega Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",thumb:IMG.fsu,
-   photos:[{src:IMG.fsu,cap:"Florida State University — the Chi Omega sorority house was located on campus"}],
-   body:"In a frenzied attack under 15 minutes, Bundy broke into the Chi Omega sorority house at FSU at 3 AM. Armed with a log, he attacked four sleeping women — killing two and critically injuring two more. He then attacked a fifth woman blocks away. Bite marks on victim Lisa Levy became landmark forensic evidence.",
-   forensic:"Forensic odontologist Dr. Richard Souviron photographed and cast the bite marks left on Lisa Levy's body. Using bite mark comparison — matching wound impressions to dental molds — he linked Bundy to the scene. This was a landmark case in forensic odontology and remains one of the most famous bite mark convictions in U.S. legal history.",
+  {id:9,year:"Jan 15, 1978",title:"Chi Omega Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",
+   ghImg:"chi_omega.jpg",fbImg:FB.chi_omega,
+   photos:[{src:GH+"chi_omega.jpg",fb:FB.chi_omega,cap:"Florida State University — the Chi Omega sorority house"}],
+   body:"Just hours after arriving in Tallahassee, Florida, Bundy broke into the Chi Omega sorority house at FSU at 3 AM. In less than 15 minutes, he attacked four sleeping women — killing two and seriously injuring two more. He then walked to a nearby apartment and attacked another woman. The bite marks he left on victim Lisa Levy became some of the most important forensic evidence in criminal history.",
+   forensic:"Forensic dentist Dr. Richard Souviron photographed and made plaster casts of the bite marks left on Lisa Levy's body. He then compared those marks to a dental mold taken from Bundy's teeth. The match was shown to the jury using overlays and photographs. This was a landmark case for forensic odontology and is still studied in forensic science courses today.",
    victims:"Lisa Levy, Margaret Bowman (murdered); Karen Chandler, Kathy Kleiner (survived)"},
-  {id:8,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",thumb:IMG.bundy80,
-   photos:[{src:IMG.bundy80,cap:"Ted Bundy — mugshot taken after his final arrest (Public Domain)"}],
-   body:"Bundy abducted 12-year-old Kimberly Leach from outside her middle school in broad daylight. Multiple witnesses saw a man matching his description lead her to a vehicle. Her body was found two months later in a state park. She was his youngest known victim and his final murder.",
-   forensic:"Forensic entomology and decomposition science were used to estimate time of death. Fiber evidence — white fiber found on Leach — was matched to fibers from Bundy's van using microscopic analysis. Blood typing and trace DNA analysis helped link Bundy to the crime scene.",
-   victims:"Kimberly Leach, age 12 — his final known victim"},
-  {id:9,year:"Feb 15, 1978",title:"Final Arrest",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",thumb:IMG.pensacola,
-   photos:[{src:IMG.pensacola,cap:"Pensacola, Florida — where Officer David Lee made the final arrest"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Public Domain)"}],
-   body:"Officer David Lee spotted Bundy driving a stolen VW Beetle and attempted a stop. Bundy fled on foot before being subdued after a struggle. He gave a false name. He was identified the following morning. He had been free for 46 days and murdered at least 3 more people in that time.",
-   forensic:"Fingerprint analysis confirmed Bundy's identity after he gave false information. The stolen vehicle was processed for fingerprints, blood traces, and hair fibers. Cross-referencing with national fingerprint databases confirmed his identity within hours.",
+  {id:10,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",
+   ghImg:"kimberly_leach.jpg",fbImg:FB.kimberly_leach,
+   photos:[{src:GH+"kimberly_leach.jpg",fb:FB.kimberly_leach,cap:"Ted Bundy — mugshot near time of final arrest (Public Domain)"}],
+   body:"Bundy abducted 12-year-old Kimberly Leach from just outside her middle school in broad daylight. Several witnesses saw a man matching his description lead her to a vehicle. Her body was found two months later in a Florida state park. She was his youngest known victim and his final murder.",
+   forensic:"Forensic entomology and decomposition science helped estimate how long the body had been there. Small white fibers found on the victim were matched under a microscope to fibers from Bundy's stolen van. Blood typing also linked physical evidence to Bundy. This case helped establish modern standards for fiber evidence collection at crime scenes.",
+   victims:"Kimberly Leach, age 12 — his last known victim"},
+  {id:11,year:"Feb 15, 1978",title:"Final Arrest",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",
+   ghImg:"final_arrest.jpg",fbImg:FB.final_arrest,
+   photos:[{src:GH+"final_arrest.jpg",fb:FB.final_arrest,cap:"Pensacola, Florida — Officer David Lee made the final arrest"},{src:"https://upload.wikimedia.org/wikipedia/commons/4/4e/Ted_Bundy_mug_shot.jpg",cap:"Ted Bundy — final mugshot (Public Domain)"}],
+   body:"Officer David Lee spotted Bundy driving a stolen VW Beetle and tried to pull him over. Bundy ran on foot but was tackled and arrested after a struggle. He gave a fake name. By the next morning, fingerprint analysis confirmed exactly who he was. During his 46 days on the run, he had killed at least 3 more people.",
+   forensic:"Fingerprint analysis quickly confirmed Bundy's real identity after he lied to police. The stolen vehicle was processed for fingerprints, blood, and hair fibers. Cross-checking with national fingerprint databases — relatively new at the time — matched his prints within hours.",
    victims:null},
-  {id:10,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",thumb:IMG.miami,
-   photos:[{src:IMG.miami,cap:"Miami, Florida — site of the nationally televised Chi Omega murder trial"}],
-   body:"Bundy represented himself at trial — one of the first criminal trials broadcast on national television. Dr. Richard Souviron presented bite mark evidence matching Bundy to victim Lisa Levy. He was convicted of two counts of first-degree murder and sentenced to death.",
-   forensic:"This trial set a national precedent for forensic odontology as admissible courtroom evidence. Bite mark photography, dental casting, and overlay comparison were presented to the jury. The case also established guidelines for forensic photography standards in criminal proceedings.",
+  {id:12,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",
+   ghImg:"chi_omega_trial.jpg",fbImg:FB.chi_omega_trial,
+   photos:[{src:GH+"chi_omega_trial.jpg",fb:FB.chi_omega_trial,cap:"Miami, Florida — one of the first trials broadcast on national TV"}],
+   body:"Bundy chose to represent himself at trial, which was broadcast on national television — a first in American legal history. Dr. Richard Souviron presented the bite mark evidence directly connecting Bundy to the crime scene. Bundy was found guilty of two counts of first-degree murder and sentenced to death.",
+   forensic:"This trial set a national standard for forensic odontology as acceptable courtroom evidence. The techniques used — dental casting, bite mark photography, and overlay comparison — became templates that forensic scientists still follow today. It also set guidelines for how forensic photos must be taken and presented in court.",
    victims:null},
-  {id:11,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",thumb:IMG.orlando,
-   photos:[{src:IMG.orlando,cap:"Orlando, Florida — site of the Kimberly Leach murder trial"}],
-   body:"A second trial for the murder of 12-year-old Kimberly Leach resulted in a third death sentence. Fiber evidence and blood typing were key. Bundy continued to publicly deny his crimes for years while privately admitting guilt to FBI agents.",
-   forensic:"Trace evidence played the central forensic role: white nylon fibers from Bundy's van matched fibers on the victim. Blood typing linked biological evidence to Bundy. This case advanced standards for trace evidence collection and was an early example of cross-referencing fiber databases in criminal investigations.",
+  {id:13,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",
+   ghImg:"leach_trial.jpg",fbImg:FB.leach_trial,
+   photos:[{src:GH+"leach_trial.jpg",fb:FB.leach_trial,cap:"Orlando, Florida — the Kimberly Leach murder trial"}],
+   body:"In a second trial for the murder of 12-year-old Kimberly Leach, Bundy received a third death sentence. Fiber evidence and blood typing were the key pieces of proof. Even while on death row, Bundy continued to deny his crimes in public — while privately confessing details to FBI investigators.",
+   forensic:"Trace evidence was central to this case. White nylon fibers from Bundy's van matched fibers found on the victim under microscopic analysis. Blood typing matched biological evidence to Bundy. This trial helped establish early standards for building fiber evidence databases and collecting trace materials at crime scenes.",
    victims:null},
-  {id:12,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison",lat:29.9432,lng:-82.1101,type:"trial",thumb:IMG.prison,
-   photos:[{src:IMG.prison,cap:"Florida State Prison, Starke — where Bundy was executed"},{src:IMG.bundy80,cap:"Ted Bundy — final mugshot (Public Domain)"}],
-   body:"On the night before his execution, Bundy confessed to 30 murders across 7 states to FBI Special Agent William Hagmaier. Investigators believe the true number exceeds 100. At 7:06 AM on January 24, 1989, Theodore Robert Bundy was executed by electric chair. He was 42 years old. Crowds gathered outside cheering.",
-   forensic:"Post-execution, the FBI used Bundy's confessions to reopen cold cases. Modern DNA analysis has since been used to attempt to link unidentified remains to Bundy. His case directly led to the National Center for Missing & Exploited Children and pushed Congress to pass the Missing Children Act of 1982.",
-   victims:"30 confessed. Estimated 100+. Only 20 ever positively identified."},
+  {id:14,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison",lat:29.9432,lng:-82.1101,type:"trial",
+   ghImg:"execution.jpg",fbImg:FB.execution,
+   photos:[{src:GH+"execution.jpg",fb:FB.execution,cap:"Florida State Prison, Starke — where Bundy was executed"}],
+   body:"The night before his execution, Bundy confessed to 30 murders across 7 states to FBI Agent William Hagmaier. Investigators believe the real number may exceed 100. At 7:06 AM on January 24, 1989, Ted Bundy was executed by electric chair at Florida State Prison. He was 42 years old. Crowds had gathered outside cheering.",
+   forensic:"After his execution, the FBI used Bundy's confessions to reopen unsolved cold cases. Modern DNA testing has since been used to try to identify more of his victims. His case was a direct reason Congress passed the Missing Children Act of 1982 and helped create the National Center for Missing & Exploited Children.",
+   victims:"30 confessed. Estimated 100+. Only about 20 ever positively identified."},
 ];
 
 const murders=[
@@ -494,170 +468,150 @@ const murders=[
   {name:"Unknown Victim #8",date:"1978",loc:"Florida",lat:30.5,lng:-84.5},
 ];
 
-let map,evMk={},activeId=null,tlOpen=false,mapInited=false,sourcesOpen=false,pendingUploadId=null;
+let map,evMk={},activeId=null,tlOpen=false,mapInited=false,sourcesOpen=false,pendingUploadId=null,pendingUploadContext=null;
 
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
 function goDramatic(){
   showScreen('dramaticScreen');
   const ds=document.getElementById('dramaticScreen');
   setTimeout(()=>ds.classList.add('fade-in'),50);
   const show=(id,delay,prop,val)=>setTimeout(()=>{const e=document.getElementById(id);e.style.transition=`${prop} 1.2s ease`;e.style[prop]=val;},delay);
-  show('de',400,'opacity','1');
-  show('ds',1300,'opacity','1');
-  setTimeout(()=>{const r=document.getElementById('dr');r.style.transition='width 1.2s ease';r.style.width='80px';},2700);
-  show('df',3400,'opacity','1');
-  show('db',5200,'opacity','1');
+  show('de',400,'opacity','1');show('ds',1300,'opacity','1');
+  setTimeout(()=>{const r=document.getElementById('dr');r.style.transition='width 1.2s ease';r.style.width='70px';},2700);
+  show('df',3400,'opacity','1');show('db',5000,'opacity','1');
 }
 
-function startApp(){
-  showScreen('appScreen');
-  if(!mapInited){setTimeout(initMap,80);mapInited=true;}
+function startApp(){showScreen('appScreen');if(!mapInited){setTimeout(initMap,80);mapInited=true;}}
+
+function makeImgWithFallback(src,fallback,className,alt){
+  const img=document.createElement("img");
+  img.className=className;img.alt=alt||"";
+  img.src=src;
+  if(fallback) img.onerror=function(){if(this.src!==fallback){this.src=fallback;}};
+  return img;
 }
 
 function initMap(){
   map=L.map("map",{zoomControl:false,attributionControl:false}).setView([38.5,-96],4.5);
-  // Light map tiles for white/grey scheme
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
   L.control.zoom({position:"bottomright"}).addTo(map);
-
-  const latlngs=events.map(ev=>[ev.lat,ev.lng]);
-  L.polyline(latlngs,{color:'#8b0000',weight:4,opacity:0.1,lineJoin:'round'}).addTo(map);
-  L.polyline(latlngs,{color:'#c0392b',weight:2,opacity:0.5,dashArray:'8 10',lineJoin:'round',className:'story-path'}).addTo(map);
-
+  const latlngs=events.filter(e=>e.type!=='bio').map(ev=>[ev.lat,ev.lng]);
+  L.polyline(latlngs,{color:'#8b0000',weight:3,opacity:0.15,lineJoin:'round'}).addTo(map);
+  L.polyline(latlngs,{color:'#c0392b',weight:1.5,opacity:0.5,dashArray:'7 9',lineJoin:'round',className:'story-path'}).addTo(map);
   murders.forEach(m=>{
     const el=document.createElement("div");
-    el.style.cssText=`width:9px;height:9px;border-radius:50%;background:#8b0000;border:1.5px solid rgba(139,0,0,.3);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 5px rgba(139,0,0,0.5);`;
+    el.style.cssText=`width:8px;height:8px;border-radius:50%;background:#c0392b;border:1.5px solid rgba(192,57,43,0.3);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 5px rgba(192,57,43,0.5);`;
     el.onmouseenter=()=>{el.style.transform="scale(2)";el.style.boxShadow="0 0 10px rgba(192,57,43,0.8)";};
-    el.onmouseleave=()=>{el.style.transform="scale(1)";el.style.boxShadow="0 0 5px rgba(139,0,0,0.5)";};
-    const mk=L.marker([m.lat,m.lng],{icon:L.divIcon({html:el,className:"",iconSize:[9,9],iconAnchor:[4.5,4.5]})}).addTo(map);
-    mk.bindPopup(`<div class="mp-name">${m.name}</div><div class="mp-date">${m.date}</div><div style="font-size:10px;color:#888;margin-top:2px">${m.loc}</div>${m.note?`<div class="mp-note">${m.note}</div>`:''}`,{className:'murder-popup',maxWidth:210,offset:[0,-4]});
+    el.onmouseleave=()=>{el.style.transform="scale(1)";el.style.boxShadow="0 0 5px rgba(192,57,43,0.5)";};
+    const mk=L.marker([m.lat,m.lng],{icon:L.divIcon({html:el,className:"",iconSize:[8,8],iconAnchor:[4,4]})}).addTo(map);
+    mk.bindPopup(`<div class="mp-name">${m.name}</div><div class="mp-date">${m.date}</div><div style="font-size:9px;color:#888;margin-top:2px">${m.loc}</div>${m.note?`<div class="mp-note">${m.note}</div>`:''}`,{className:'murder-popup',maxWidth:200,offset:[0,-4]});
   });
-
   events.forEach(ev=>{
     const el=document.createElement("div");
     const c=TC[ev.type];
-    el.style.cssText=`width:15px;height:15px;border-radius:50%;background:${c};border:2.5px solid rgba(255,255,255,0.8);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 8px ${c}88,0 2px 6px rgba(0,0,0,0.2);`;
+    el.style.cssText=`width:14px;height:14px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,0.2);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 8px ${c}88,0 2px 5px rgba(0,0,0,0.4);`;
     el.onmouseenter=()=>{if(activeId!==ev.id)el.style.transform="scale(1.5)";};
     el.onmouseleave=()=>{if(activeId!==ev.id)el.style.transform="scale(1)";};
-    const mk=L.marker([ev.lat,ev.lng],{icon:L.divIcon({html:el,className:"",iconSize:[15,15],iconAnchor:[7.5,7.5]})}).addTo(map);
+    const mk=L.marker([ev.lat,ev.lng],{icon:L.divIcon({html:el,className:"",iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map);
     mk.on("click",()=>selectEv(ev.id));
     evMk[ev.id]={marker:mk,el};
   });
-
   buildTL();
 }
 
 function buildTL(){
   const track=document.getElementById("tlTrack");
   const spine=track.querySelector('.tl-spine');
-  track.innerHTML='';
-  track.appendChild(spine);
-
+  track.innerHTML='';track.appendChild(spine);
   events.forEach((ev,i)=>{
-    const above=i%2===0;
-    const c=TC[ev.type];
+    const above=i%2===0;const c=TC[ev.type];
     const node=document.createElement("div");
     node.className="tl-node "+(above?"above":"below");
     node.id="tln"+ev.id;
-
-    const card=document.createElement("div");
-    card.className="tl-card";
-    if(ev.thumb){
-      const img=document.createElement("img");
-      img.className="tl-card-img"; img.src=ev.thumb; img.alt=ev.title;
-      img.onerror=function(){this.style.display='none';};
-      card.appendChild(img);
+    const card=document.createElement("div");card.className="tl-card";
+    const imgWrap=document.createElement("div");imgWrap.className="tl-img-wrap";imgWrap.id="tlImgWrap"+ev.id;
+    const hasUploaded=tlUploadedImgs[ev.id]&&tlUploadedImgs[ev.id].length>0;
+    if(hasUploaded){
+      const img=makeImgWithFallback(tlUploadedImgs[ev.id][0].src,null,"tl-card-img",ev.title);
+      imgWrap.appendChild(img);
+    } else if(ev.ghImg){
+      const img=makeImgWithFallback(GH+ev.ghImg,ev.fbImg,"tl-card-img",ev.title);
+      img.onerror=function(){
+        if(ev.fbImg&&this.src!==ev.fbImg){this.src=ev.fbImg;}
+        else{this.remove();showNoImg(imgWrap,ev.id);}
+      };
+      imgWrap.appendChild(img);
+    } else {
+      showNoImg(imgWrap,ev.id);
     }
-    const bd=document.createElement("div");
-    bd.className="tl-card-body";
+    const upBtn=document.createElement("button");upBtn.className="tl-upload-btn";upBtn.textContent="+ Photo";
+    upBtn.onclick=(e)=>{e.stopPropagation();triggerUpload(ev.id,'tl');};
+    imgWrap.appendChild(upBtn);
+    card.appendChild(imgWrap);
+    const bd=document.createElement("div");bd.className="tl-card-body";
     bd.innerHTML=`<div class="tl-card-type" style="color:${c}">${TL[ev.type]}</div><div class="tl-card-year">${ev.year}</div><div class="tl-card-name">${ev.title}</div><div class="tl-card-loc">${ev.location}</div>`;
     card.appendChild(bd);
-
-    const conn=document.createElement("div");
-    conn.className="tl-conn";
-    const dot=document.createElement("div");
-    dot.className="tl-dot";
-    dot.style.cssText=`background:${c};box-shadow:0 0 6px ${c}88;border:2px solid white;`;
-
-    if(above){ node.appendChild(card); node.appendChild(conn); node.appendChild(dot); }
-    else { node.appendChild(dot); node.appendChild(conn); node.appendChild(card); }
-
+    const conn=document.createElement("div");conn.className="tl-conn";
+    const dot=document.createElement("div");dot.className="tl-dot";
+    dot.style.cssText=`background:${c};box-shadow:0 0 6px ${c}88;border:2px solid rgba(42,42,42,0.9);`;
+    if(above){node.appendChild(card);node.appendChild(conn);node.appendChild(dot);}
+    else{node.appendChild(dot);node.appendChild(conn);node.appendChild(card);}
     node.addEventListener("click",()=>selectEv(ev.id));
     track.appendChild(node);
   });
 }
 
-function renderPhotos(ev){
-  const ph=document.getElementById("dPhotos");
-  ph.innerHTML="";
+function showNoImg(wrap,evId){
+  const noImg=document.createElement("div");noImg.className="tl-no-img";
+  noImg.innerHTML=`<div class="tl-no-img-icon">📷</div><div>+ Photo</div>`;
+  noImg.onclick=(e)=>{e.stopPropagation();triggerUpload(evId,'tl');};
+  wrap.appendChild(noImg);
+}
 
-  // Base photos from event data
+function renderPhotos(ev){
+  const ph=document.getElementById("dPhotos");ph.innerHTML="";
   const basePh=ev.photos||[];
   basePh.forEach(p=>{
-    const img=document.createElement("img");
-    img.className="det-photo"; img.src=p.src; img.alt=p.cap;
-    img.onerror=function(){this.remove();};
+    const img=makeImgWithFallback(p.src,p.fb||null,"det-photo",p.cap);
     img.onclick=()=>openLB(p.src,p.cap);
     ph.appendChild(img);
   });
-
-  // User uploaded photos
   const ups=uploadedPhotos[ev.id]||[];
   ups.forEach((p,idx)=>{
-    const wrap=document.createElement("div");
-    wrap.className="uploaded-photo-wrap";
-    const img=document.createElement("img");
-    img.className="det-photo"; img.src=p.src; img.alt=p.cap;
+    const wrap=document.createElement("div");wrap.className="uploaded-photo-wrap";
+    const img=document.createElement("img");img.className="det-photo";img.src=p.src;img.alt=p.cap;
     img.onclick=()=>openLB(p.src,p.cap);
-    const rmBtn=document.createElement("button");
-    rmBtn.className="remove-photo";
-    rmBtn.textContent="✕";
-    rmBtn.title="Remove photo";
-    rmBtn.onclick=(e)=>{
-      e.stopPropagation();
-      uploadedPhotos[ev.id].splice(idx,1);
-      renderPhotos(ev);
-    };
-    wrap.appendChild(img);
-    wrap.appendChild(rmBtn);
-    ph.appendChild(wrap);
+    const rmBtn=document.createElement("button");rmBtn.className="remove-photo";rmBtn.textContent="✕";
+    rmBtn.onclick=(e)=>{e.stopPropagation();uploadedPhotos[ev.id].splice(idx,1);renderPhotos(ev);};
+    wrap.appendChild(img);wrap.appendChild(rmBtn);ph.appendChild(wrap);
   });
-
-  // Upload slot
-  const slot=document.createElement("div");
-  slot.className="upload-slot";
-  slot.title="Upload a photo for this event";
-  slot.innerHTML=`<div class="upload-slot-icon">＋</div><div class="upload-slot-txt">Add<br>Photo</div>`;
-  slot.onclick=()=>triggerUpload(ev.id);
+  const slot=document.createElement("div");slot.className="upload-slot";
+  slot.innerHTML=`<div class="upload-slot-icon">＋</div><div class="upload-slot-txt">Add Photo</div>`;
+  slot.onclick=()=>triggerUpload(ev.id,'det');
   ph.appendChild(slot);
 }
 
-function triggerUpload(evId){
-  pendingUploadId=evId;
-  const fi=document.getElementById("globalFileInput");
-  fi.value="";
-  fi.click();
+function triggerUpload(evId,ctx){
+  pendingUploadId=evId;pendingUploadContext=ctx;
+  const fi=document.getElementById("globalFileInput");fi.value="";fi.click();
 }
 
-document.getElementById("globalFileInput").addEventListener("change",function(e){
-  const evId=pendingUploadId;
-  if(!evId) return;
-  const files=Array.from(this.files);
-  if(!files.length) return;
-  if(!uploadedPhotos[evId]) uploadedPhotos[evId]=[];
+document.getElementById("globalFileInput").addEventListener("change",function(){
+  const evId=pendingUploadId;if(!evId)return;
+  const files=Array.from(this.files);if(!files.length)return;
+  if(!uploadedPhotos[evId])uploadedPhotos[evId]=[];
+  if(!tlUploadedImgs[evId])tlUploadedImgs[evId]=[];
   let loaded=0;
   files.forEach(file=>{
     const reader=new FileReader();
     reader.onload=function(re){
-      uploadedPhotos[evId].push({src:re.target.result,cap:file.name});
+      const obj={src:re.target.result,cap:file.name};
+      uploadedPhotos[evId].push(obj);tlUploadedImgs[evId].push(obj);
       loaded++;
       if(loaded===files.length){
         const ev=events.find(e=>e.id===evId);
-        if(ev && activeId===evId) renderPhotos(ev);
+        if(ev){if(activeId===evId)renderPhotos(ev);buildTL();if(tlOpen)document.querySelectorAll('.tl-node').forEach(n=>n.classList.add('show'));}
       }
     };
     reader.readAsDataURL(file);
@@ -665,70 +619,50 @@ document.getElementById("globalFileInput").addEventListener("change",function(e)
 });
 
 function selectEv(id){
-  activeId=id;
-  const ev=events.find(e=>e.id===id);
-  const c=TC[ev.type];
-
+  activeId=id;const ev=events.find(e=>e.id===id);const c=TC[ev.type];
   Object.entries(evMk).forEach(([eid,m])=>{
     const e=events.find(x=>x.id==eid);
     m.el.style.transform="scale(1)";
-    m.el.style.boxShadow=`0 0 8px ${TC[e.type]}88,0 2px 6px rgba(0,0,0,0.2)`;
+    m.el.style.boxShadow=`0 0 8px ${TC[e.type]}88,0 2px 5px rgba(0,0,0,0.4)`;
   });
-  if(evMk[id]){
-    evMk[id].el.style.transform="scale(2)";
-    evMk[id].el.style.boxShadow=`0 0 16px ${c},0 0 30px ${c}55,0 2px 8px rgba(0,0,0,0.3)`;
-  }
-
+  if(evMk[id]){evMk[id].el.style.transform="scale(2)";evMk[id].el.style.boxShadow=`0 0 16px ${c},0 0 30px ${c}55`;}
   document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
   const node=document.getElementById("tln"+id);
   if(node){node.classList.add('sel');node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
-
   document.getElementById("dType").textContent=TL[ev.type];
   document.getElementById("dType").style.color=c;
   document.getElementById("dTitle").textContent=ev.title;
   document.getElementById("dMeta").textContent=ev.year+" · "+ev.location;
   document.getElementById("dBody").textContent=ev.body;
-
-  const fEl=document.getElementById("dForensic");
-  const fTxt=document.getElementById("dForensicText");
-  if(ev.forensic){fTxt.textContent=ev.forensic;fEl.style.display="block";}
-  else fEl.style.display="none";
-
+  const fEl=document.getElementById("dForensic");const fTxt=document.getElementById("dForensicText");
+  if(ev.forensic){fTxt.textContent=ev.forensic;fEl.style.display="block";}else fEl.style.display="none";
   renderPhotos(ev);
-
   const vic=document.getElementById("dVic");
-  if(ev.victims){vic.innerHTML=`<div class="det-vl">Known Victims</div><div class="det-vv">${ev.victims}</div>`;vic.style.display="block";}
-  else vic.style.display="none";
-
+  if(ev.victims){vic.innerHTML=`<div class="det-vl">Known Victims</div><div class="det-vv">${ev.victims}</div>`;vic.style.display="block";}else vic.style.display="none";
   document.getElementById("detCard").classList.add("visible");
-  if(map) map.flyTo([ev.lat,ev.lng],9,{duration:1.2});
+  if(map)map.flyTo([ev.lat,ev.lng],9,{duration:1.2});
 }
 
 function closeDet(){
-  document.getElementById("detCard").classList.remove("visible");
-  activeId=null;
+  document.getElementById("detCard").classList.remove("visible");activeId=null;
   Object.entries(evMk).forEach(([,m])=>{m.el.style.transform="scale(1)";});
   document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
 }
 
 function toggleTL(){
   tlOpen=!tlOpen;
-  const ov=document.getElementById("tlOverlay");
-  const btn=document.getElementById("tlBtn");
+  const ov=document.getElementById("tlOverlay");const btn=document.getElementById("tlBtn");
   if(tlOpen){
     ov.classList.add('open');
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       ov.classList.add('vis');
-      document.querySelectorAll('.tl-node').forEach((n,i)=>{
-        setTimeout(()=>n.classList.add('show'),300+i*60);
-      });
+      document.querySelectorAll('.tl-node').forEach((n,i)=>{setTimeout(()=>n.classList.add('show'),280+i*55);});
     }));
     btn.classList.add('on');
   } else {
     ov.classList.remove('vis');
     document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('show'));
-    setTimeout(()=>ov.classList.remove('open'),400);
-    btn.classList.remove('on');
+    setTimeout(()=>ov.classList.remove('open'),400);btn.classList.remove('on');
   }
 }
 
