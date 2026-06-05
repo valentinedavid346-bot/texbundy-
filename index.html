@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ted Bundy — Interactive Crime Timeline</title>
+<title>Ted Bundy, Interactive Crime Timeline</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -116,7 +116,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 .facts-list{list-style:none;padding:0;margin:0;}
 .facts-list li{font-size:12px;color:var(--text2);line-height:1.6;padding:5px 0 5px 16px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
 .facts-list li:last-child{border-bottom:none;}
-.facts-list li::before{content:"▸";position:absolute;left:0;color:var(--red);font-size:10px;top:7px;}
+.facts-list li::before{content:"";position:absolute;left:0;color:var(--red);font-size:10px;top:7px;}
 .facts-list li strong{color:var(--text);}
 
 /* Forensics */
@@ -125,7 +125,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 .forensic-list{list-style:none;padding:0;margin:0;}
 .forensic-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:7px 0 7px 22px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
 .forensic-list li:last-child{border-bottom:none;}
-.forensic-list li::before{content:"🔬";position:absolute;left:0;font-size:10px;top:9px;}
+.forensic-list li::before{content:"";position:absolute;left:0;font-size:10px;top:9px;}
 .forensic-list li .f-label{color:var(--red);font-weight:700;display:block;font-size:11px;margin-bottom:2px;}
 .forensic-list li .f-text{color:var(--text2);}
 
@@ -135,7 +135,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 .verdict-list{list-style:none;padding:0;margin:0;}
 .verdict-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:5px 0 5px 20px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
 .verdict-list li:last-child{border-bottom:none;}
-.verdict-list li::before{content:"⚖";position:absolute;left:0;font-size:10px;top:7px;}
+.verdict-list li::before{content:"";position:absolute;left:0;font-size:10px;top:7px;}
 .verdict-list li strong{color:#2ecc71;}
 
 /* Testimony */
@@ -144,7 +144,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 .testimony-list{list-style:none;padding:0;margin:0;}
 .testimony-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:5px 0 5px 20px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
 .testimony-list li:last-child{border-bottom:none;}
-.testimony-list li::before{content:"👤";position:absolute;left:0;font-size:10px;top:7px;}
+.testimony-list li::before{content:"";position:absolute;left:0;font-size:10px;top:7px;}
 .testimony-list li strong{color:#5dade2;}
 
 /* Victims */
@@ -152,7 +152,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 .victim-list{list-style:none;padding:0;margin:0;}
 .victim-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:4px 0 4px 14px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
 .victim-list li:last-child{border-bottom:none;}
-.victim-list li::before{content:"•";position:absolute;left:0;color:var(--red);}
+.victim-list li::before{content:"";position:absolute;left:0;color:var(--red);}
 
 /* full-width block for single-column events */
 .det-scroll.single-col{grid-template-columns:1fr;}
@@ -184,7 +184,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 <div class="screen active" id="introScreen">
   <div class="intro-bg"></div><div class="intro-grain"></div>
   <div class="intro-content">
-    <div class="intro-label">True Crime — Forensic Case Study</div>
+    <div class="intro-label">True Crime, Forensic Case Study</div>
     <div class="intro-title">Ted <em>Bundy</em></div>
     <div class="intro-rule"></div>
     <div class="intro-dates">November 24, 1946 &nbsp;—&nbsp; January 24, 1989</div>
@@ -211,12 +211,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
 <div class="screen" id="appScreen">
   <div class="topbar">
     <div class="tb-left">
-      <h1>Ted Bundy — Interactive Crime Timeline & Forensic Analysis</h1>
+      <h1>Ted Bundy, Interactive Crime Timeline & Forensic Analysis</h1>
       <p>Active 1974–1978 &nbsp;·&nbsp; 30 confirmed murders &nbsp;·&nbsp; 7 states &nbsp;·&nbsp; Click any marker for full forensic detail</p>
     </div>
     <div class="tb-right">
       <button class="tb-btn" onclick="toggleSources()">Sources</button>
-      <button class="tb-btn" id="tlBtn" onclick="toggleTL()">☰ Timeline</button>
+      <button class="tb-btn" id="tlBtn" onclick="toggleTL()"> Timeline</button>
     </div>
   </div>
   <div id="map"></div>
@@ -232,8 +232,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
   </div>
   <div id="tlOverlay">
     <div class="tl-topbar">
-      <div class="tl-label">Chronological Timeline — Scroll →</div>
-      <button class="tl-close-btn" onclick="toggleTL()">✕ Close</button>
+      <div class="tl-label">Chronological Timeline, Scroll →</div>
+      <button class="tl-close-btn" onclick="toggleTL()"> Close</button>
     </div>
     <div class="tl-h-wrap">
       <div class="tl-track" id="tlTrack"><div class="tl-spine" id="tlSpine"></div></div>
@@ -241,7 +241,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
   </div>
   <div class="det-card" id="detCard">
     <div class="det-hdr">
-      <button class="det-close" onclick="closeDet()">✕</button>
+      <button class="det-close" onclick="closeDet()"></button>
       <div class="det-type" id="dType"></div>
       <div class="det-title" id="dTitle"></div>
       <div class="det-meta" id="dMeta"></div>
@@ -250,18 +250,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Pl
   </div>
   <div id="sourcesPanel">
     <div class="src-inner">
-      <button class="src-close" onclick="toggleSources()">✕</button>
+      <button class="src-close" onclick="toggleSources()"></button>
       <div class="src-title">Sources & Citations</div>
       <div class="src-grid">
         <div class="src-item"><span class="src-cat">Book</span>Rule, Ann. <em>The Stranger Beside Me.</em> W.W. Norton, 1980.</div>
         <div class="src-item"><span class="src-cat">Book</span>Michaud & Aynesworth. <em>The Only Living Witness.</em> Authorlink, 1999.</div>
-        <div class="src-item"><span class="src-cat">Government</span>FBI Behavioral Science Unit — Bundy Case Files, 1974–1989.</div>
+        <div class="src-item"><span class="src-cat">Government</span>FBI Behavioral Science Unit, Bundy Case Files, 1974–1989.</div>
         <div class="src-item"><span class="src-cat">Forensics</span>Souviron, R. (1979). Bite mark evidence in <em>State v. Bundy.</em></div>
-        <div class="src-item"><span class="src-cat">Encyclopedia</span>Britannica — "Ted Bundy." britannica.com/biography/Ted-Bundy</div>
-        <div class="src-item"><span class="src-cat">Archive</span>Florida Dept. of Law Enforcement — Bundy Records, 1975–1989.</div>
+        <div class="src-item"><span class="src-cat">Encyclopedia</span>Britannica, "Ted Bundy." britannica.com/biography/Ted-Bundy</div>
+        <div class="src-item"><span class="src-cat">Archive</span>Florida Dept. of Law Enforcement, Bundy Records, 1975–1989.</div>
         <div class="src-item"><span class="src-cat">News</span>New York Times. "Bundy Is Put to Death in Florida." Jan 25, 1989.</div>
-        <div class="src-item"><span class="src-cat">Legal</span>State v. Bundy, 455 So.2d 330 (Fla. 1984) — Chi Omega Trial Record.</div>
-        <div class="src-item"><span class="src-cat">Map Data</span>OpenStreetMap contributors — CartoDB dark_all tiles.</div>
+        <div class="src-item"><span class="src-cat">Legal</span>State v. Bundy, 455 So.2d 330 (Fla. 1984), Chi Omega Trial Record.</div>
+        <div class="src-item"><span class="src-cat">Map Data</span>OpenStreetMap contributors, CartoDB dark_all tiles.</div>
       </div>
     </div>
   </div>
@@ -275,147 +275,147 @@ const TL={bio:"Background",crime:"Murder / Crime",arrest:"Arrest",escape:"Escape
 const events=[
   {
     id:0,year:"Nov 24, 1946",title:"Birth",location:"Burlington, Vermont",lat:44.4759,lng:-73.2121,type:"bio",
-    facts:["Born Theodore Robert Cowell, Burlington, Vermont","Mother was unmarried — born in a home for unwed mothers","Father was never officially identified","Raised believing his grandparents were his parents","Told his own mother was his older sister — family kept the truth hidden"]
+    facts:["Born Theodore Robert Cowell, Burlington, Vermont","Mother was unmarried, born in a home for unwed mothers","Father was never officially identified","Raised believing his grandparents were his parents","Told his own mother was his older sister, family kept the truth hidden"]
   },
   {
     id:1,year:"1946–1965",title:"Childhood & Early Life",location:"Tacoma, Washington",lat:47.2529,lng:-122.4443,type:"bio",
-    facts:["Age 4: family moved to Tacoma, Washington","Mother married Johnnie Bundy — Ted took his last name","Appeared completely normal to everyone around him — charming, polite, smart","Age 3: placed kitchen knives around his sleeping cousin and stood over her smiling","Showed early signs of antisocial personality disorder — could fake emotions but felt nothing","Described himself as feeling like an outsider despite appearing outgoing"]
+    facts:["Age 4: family moved to Tacoma, Washington","Mother married Johnnie Bundy, Ted took his last name","Appeared completely normal to everyone around him, charming, polite, smart","Age 3: placed kitchen knives around his sleeping cousin and stood over her smiling","Showed early signs of antisocial personality disorder, could fake emotions but felt nothing","Described himself as feeling like an outsider despite appearing outgoing"]
   },
   {
     id:2,year:"1965–1973",title:"Teen & College Years",location:"Seattle, Washington",lat:47.6562,lng:-122.3087,type:"bio",
-    facts:["Attended University of Washington — degree in Psychology","Worked on a Republican governor's campaign — politically connected","Volunteered at a suicide prevention hotline (ironic given what came later)","Briefly studied law — later used this to represent himself in court","Everyone who knew him said they never suspected anything"]
+    facts:["Attended University of Washington, degree in Psychology","Worked on a Republican governor's campaign, politically connected","Volunteered at a suicide prevention hotline (ironic given what came later)","Briefly studied law, later used this to represent himself in court","Everyone who knew him said they never suspected anything"]
   },
   {
     id:3,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",
-    facts:["Jan 4, 1974: attacked Joni Lenz (21) with a metal rod while she slept — survived with permanent brain damage","Feb 1, 1974: murdered Linda Ann Healy — first confirmed murder","Method: faked a broken arm, asked women for help, then attacked them once isolated","By late 1974: at least 7 women missing from WA and OR — all college-aged, long dark hair"],
+    facts:["Jan 4, 1974: attacked Joni Lenz (21) with a metal rod while she slept, survived with permanent brain damage","Feb 1, 1974: murdered Linda Ann Healy, first confirmed murder","Method: faked a broken arm, asked women for help, then attacked them once isolated","By late 1974: at least 7 women missing from WA and OR, all college-aged, long dark hair"],
     forensic:[
-      {label:"Fingerprint Analysis",text:"Prints lifted from scenes — not yet matched to Bundy, but preserved for later use."},
+      {label:"Fingerprint Analysis",text:"Prints lifted from scenes, not yet matched to Bundy, but preserved for later use."},
       {label:"Tire Track Impressions",text:"Witnesses described a VW Beetle near abduction sites. Plaster casts of tire tracks were made and later matched to Bundy's car."},
-      {label:"Microscopic Hair Analysis",text:"Hair from recovery sites examined under microscopes — analysts compared shaft diameter, pigmentation, and surface pattern to identify possible sources."},
-      {label:"Composite Sketch",text:"Forensic artists combined witness descriptions into a suspect sketch — one of the first major composite uses in a serial killer case. First name 'Ted' entered the case."},
-      {label:"Retroactive DNA (Modern)",text:"Decades later, a male DNA profile was extracted from preserved evidence using modern STR profiling — definitively confirming Bundy's guilt."}
+      {label:"Microscopic Hair Analysis",text:"Hair from recovery sites examined under microscopes, analysts compared shaft diameter, pigmentation, and surface pattern to identify possible sources."},
+      {label:"Composite Sketch",text:"Forensic artists combined witness descriptions into a suspect sketch, one of the first major composite uses in a serial killer case. First name 'Ted' entered the case."},
+      {label:"Retroactive DNA (Modern)",text:"Decades later, a male DNA profile was extracted from preserved evidence using modern STR profiling, definitively confirming Bundy's guilt."}
     ],
-    victims:["Joni Lenz — survived, permanent brain damage","Linda Ann Healy","Donna Manson","Susan Rancourt","Roberta Parks","Brenda Ball","Georgeann Hawkins"]
+    victims:["Joni Lenz, survived, permanent brain damage","Linda Ann Healy","Donna Manson","Susan Rancourt","Roberta Parks","Brenda Ball","Georgeann Hawkins"]
   },
   {
     id:4,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",
-    facts:["Crowded public beach — broad daylight, hundreds of witnesses","Introduced himself as 'Ted,' wore arm sling, asked for help with his sailboat","Abducted TWO women in the same afternoon, hours apart","First time police had a first name, physical description, and 100+ witnesses"],
+    facts:["Crowded public beach, broad daylight, hundreds of witnesses","Introduced himself as 'Ted,' wore arm sling, asked for help with his sailboat","Abducted TWO women in the same afternoon, hours apart","First time police had a first name, physical description, and 100+ witnesses"],
     forensic:[
-      {label:"Eyewitness Composite",text:"100+ witnesses interviewed. Descriptions independently matched — resulting in the most detailed composite of the case."},
+      {label:"Eyewitness Composite",text:"100+ witnesses interviewed. Descriptions independently matched, resulting in the most detailed composite of the case."},
       {label:"Microscopic Hair & Fiber",text:"Hair cuticle pattern, cortex structure, and pigmentation analyzed. Fiber weave and dye composition examined at recovery site."},
-      {label:"Forensic Anthropology",text:"Skeletal remains identified through dental records — forensic anthropologists determined sex, age range, and height from bone structure."},
-      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval — how long since death."},
+      {label:"Forensic Anthropology",text:"Skeletal remains identified through dental records, forensic anthropologists determined sex, age range, and height from bone structure."},
+      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval, how long since death."},
       {label:"Retroactive DNA",text:"Modern genealogy databases later used to link biological evidence to Bundy and identify additional cold-case victims."}
     ],
     victims:["Janice Ott","Denise Naslund"]
   },
   {
     id:5,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",
-    facts:["Moved to University of Utah Law School — continued killing while enrolled","Targeted ski resorts, college campuses, and shopping centers","At least 9 more murders across Utah, Colorado, and Idaho","Youngest victim: Lynette Culver, age 12, Pocatello, Idaho","Law enforcement in different states didn't yet know they were hunting the same man"],
+    facts:["Moved to University of Utah Law School, continued killing while enrolled","Targeted ski resorts, college campuses, and shopping centers","At least 9 more murders across Utah, Colorado, and Idaho","Youngest victim: Lynette Culver, age 12, Pocatello, Idaho","Law enforcement in different states didn't yet know they were hunting the same man"],
     forensic:[
-      {label:"FBI Criminal Profiling (First Ever)",text:"FBI's new Behavioral Science Unit (BSU) built one of the first formal criminal profiles in history — intelligent, charming, organized white male, mid-20s to 30s, uses a vehicle."},
-      {label:"Cross-State Evidence Sharing",text:"Physical evidence shared across state lines — hair, bite marks, tire tracks. This cooperation eventually led to creation of the FBI's ViCAP system."},
+      {label:"FBI Criminal Profiling (First Ever)",text:"FBI's new Behavioral Science Unit (BSU) built one of the first formal criminal profiles in history, intelligent, charming, organized white male, mid-20s to 30s, uses a vehicle."},
+      {label:"Cross-State Evidence Sharing",text:"Physical evidence shared across state lines, hair, bite marks, tire tracks. This cooperation eventually led to creation of the FBI's ViCAP system."},
       {label:"Soil & Pollen Analysis",text:"Trace soil and pollen on victims' clothing linked them to specific locations connected to Bundy's movements."},
       {label:"Blood Typing (ABO)",text:"Before DNA testing existed, ABO blood group typing was the primary biological evidence method available."},
-      {label:"Blunt Force Autopsy",text:"No defensive wounds found — confirmed victims were unconscious or asleep when attacked. Injury pattern matched a smooth cylindrical weapon."}
+      {label:"Blunt Force Autopsy",text:"No defensive wounds found, confirmed victims were unconscious or asleep when attacked. Injury pattern matched a smooth cylindrical weapon."}
     ],
-    victims:["Nancy Wilcox","Melissa Smith","Laura Aime","Debra Kent","Caryn Campbell","Julie Cunningham","Denise Oliverson","Lynette Culver — age 12","Susan Curtis"]
+    victims:["Nancy Wilcox","Melissa Smith","Laura Aime","Debra Kent","Caryn Campbell","Julie Cunningham","Denise Oliverson","Lynette Culver, age 12","Susan Curtis"]
   },
   {
     id:6,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",
-    facts:["Officer Bob Hayward pulled over a VW Beetle driving without headlights at night","Inside: ski mask, handcuffs, rope, wire, ice pick — a full kidnapping kit","Bundy claimed he found it all in a dumpster","Victim Carol DaRonch identified him in a police lineup","Convicted of kidnapping — sentenced to 1–15 years"],
+    facts:["Officer Bob Hayward pulled over a VW Beetle driving without headlights at night","Inside: ski mask, handcuffs, rope, wire, ice pick, a full kidnapping kit","Bundy claimed he found it all in a dumpster","Victim Carol DaRonch identified him in a police lineup","Convicted of kidnapping, sentenced to 1–15 years"],
     forensic:[
-      {label:"Physical Evidence Inventory",text:"Every item photographed and catalogued. Handcuffs matched the type DaRonch described — she had been cuffed before escaping."},
-      {label:"Forensic Lineup",text:"Carol DaRonch picked Bundy from a live 6-person lineup — standard eyewitness identification procedure. Became cornerstone of prosecution."},
-      {label:"Fiber Comparison",text:"Carpet fibers from Bundy's VW Beetle compared microscopically to fibers on DaRonch's clothing — characteristics were consistent."},
-      {label:"Tire Track Correlation",text:"Crime scene tire impressions from Utah and Washington re-examined after arrest — multiple impressions matched Bundy's VW Beetle tires."}
+      {label:"Physical Evidence Inventory",text:"Every item photographed and catalogued. Handcuffs matched the type DaRonch described, she had been cuffed before escaping."},
+      {label:"Forensic Lineup",text:"Carol DaRonch picked Bundy from a live 6-person lineup, standard eyewitness identification procedure. Became cornerstone of prosecution."},
+      {label:"Fiber Comparison",text:"Carpet fibers from Bundy's VW Beetle compared microscopically to fibers on DaRonch's clothing, characteristics were consistent."},
+      {label:"Tire Track Correlation",text:"Crime scene tire impressions from Utah and Washington re-examined after arrest, multiple impressions matched Bundy's VW Beetle tires."}
     ],
-    victims:["Carol DaRonch — survived, kidnapping victim"]
+    victims:["Carol DaRonch, survived, kidnapping victim"]
   },
   {
-    id:7,year:"Jun 7, 1977",title:"Escape #1 — Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",
-    facts:["Allowed to use courthouse law library for his own defense — left alone","Opened a second-floor window and jumped ~25 feet to the street","Sprained ankle on landing — fled into the mountains","Survived 8 days alone before being caught 6 miles from Aspen","Recaptured thin, hypothermic, and disoriented"],
+    id:7,year:"Jun 7, 1977",title:"Escape #1, Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",
+    facts:["Allowed to use courthouse law library for his own defense, left alone","Opened a second-floor window and jumped ~25 feet to the street","Sprained ankle on landing, fled into the mountains","Survived 8 days alone before being caught 6 miles from Aspen","Recaptured thin, hypothermic, and disoriented"],
     forensic:[
-      {label:"Medical Documentation",text:"Full physical exam after recapture — documented weight loss, ankle injury, and exposure. Used in security risk assessment."},
+      {label:"Medical Documentation",text:"Full physical exam after recapture, documented weight loss, ankle injury, and exposure. Used in security risk assessment."},
       {label:"Escape Route Reconstruction",text:"Scuff marks on windowsill, broken vegetation below, and soil footprints documented to establish exactly how he escaped."},
-      {label:"Correctional Science Impact",text:"Led to nationwide changes in how dangerous prisoners are supervised in courthouses — protocols developed in response are still used today."}
+      {label:"Correctional Science Impact",text:"Led to nationwide changes in how dangerous prisoners are supervised in courthouses, protocols developed in response are still used today."}
     ]
   },
   {
-    id:8,year:"Dec 30, 1977",title:"Escape #2 — Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",
-    facts:["Deliberately lost 35 lbs over months to fit through a small ceiling hole","Smuggled in a hacksaw blade — cut through ceiling over several weeks","Timed cutting to Christmas party noise to avoid detection","Dropped into a guard's empty apartment, changed clothes, walked out the front door","Not discovered missing for 15 hours — made it to Tallahassee, Florida"],
+    id:8,year:"Dec 30, 1977",title:"Escape #2, Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",
+    facts:["Deliberately lost 35 lbs over months to fit through a small ceiling hole","Smuggled in a hacksaw blade, cut through ceiling over several weeks","Timed cutting to Christmas party noise to avoid detection","Dropped into a guard's empty apartment, changed clothes, walked out the front door","Not discovered missing for 15 hours, made it to Tallahassee, Florida"],
     forensic:[
       {label:"Cell Forensic Analysis",text:"Ceiling showed cuts made over weeks to months. Hacksaw blade had heavy wear from repeated use. Metal shavings hidden under his mattress."},
-      {label:"Weight Loss Documentation",text:"Prison medical records showed a dramatic deliberate drop in weight — evidence of long-term escape planning that staff had not flagged as a security risk."},
-      {label:"Correctional Science Impact",text:"Permanently changed how U.S. jails inspect cells, detect contraband, and monitor inmate weight — now standard protocols nationwide."}
+      {label:"Weight Loss Documentation",text:"Prison medical records showed a dramatic deliberate drop in weight, evidence of long-term escape planning that staff had not flagged as a security risk."},
+      {label:"Correctional Science Impact",text:"Permanently changed how U.S. jails inspect cells, detect contraband, and monitor inmate weight, now standard protocols nationwide."}
     ]
   },
   {
     id:9,year:"Jan 15, 1978",title:"Chi Omega Sorority Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",
-    facts:["3:00 AM — broke into Chi Omega sorority house, FSU","Under 15 minutes — attacked 4 sleeping women with a piece of oak firewood","2 murdered, 2 survived with serious injuries","Walked 8 blocks and attacked a 5th woman — survived with permanent hearing loss","Bite marks left on victim Lisa Levy = most important forensic evidence in US court history"],
+    facts:["3:00 AM, broke into Chi Omega sorority house, FSU","Under 15 minutes, attacked 4 sleeping women with a piece of oak firewood","2 murdered, 2 survived with serious injuries","Walked 8 blocks and attacked a 5th woman, survived with permanent hearing loss","Bite marks left on victim Lisa Levy = most important forensic evidence in US court history"],
     forensic:[
-      {label:"Forensic Odontology — Bite Mark",text:"Dr. Souviron photographed and cast bite marks on Lisa Levy. He compared them to Bundy's dental mold using overlays — unique chipped tooth and double-bite pattern matched exactly."},
-      {label:"Critical Complication",text:"Original tissue sample accidentally destroyed during analysis. The entire case rested on photographs taken beforehand — defense attacked this heavily at trial."},
-      {label:"Blunt Force Trauma",text:"No defensive wounds — all victims attacked while unconscious. Injury pattern matched a smooth cylindrical hardwood object ~1.5 inches wide, struck from behind."},
-      {label:"Microscopic Hair Analysis",text:"Hair from a knotted pantyhose found at scene — cuticle pattern, pigment distribution, and medullary structure were consistent with Bundy's hair."},
-      {label:"Fiber Trace Evidence",text:"Pantyhose mask analyzed for fiber characteristics — consistent with Bundy's clothing under microscopic comparison."}
+      {label:"Forensic Odontology, Bite Mark",text:"Dr. Souviron photographed and cast bite marks on Lisa Levy. He compared them to Bundy's dental mold using overlays, unique chipped tooth and double-bite pattern matched exactly."},
+      {label:"Critical Complication",text:"Original tissue sample accidentally destroyed during analysis. The entire case rested on photographs taken beforehand, defense attacked this heavily at trial."},
+      {label:"Blunt Force Trauma",text:"No defensive wounds, all victims attacked while unconscious. Injury pattern matched a smooth cylindrical hardwood object ~1.5 inches wide, struck from behind."},
+      {label:"Microscopic Hair Analysis",text:"Hair from a knotted pantyhose found at scene, cuticle pattern, pigment distribution, and medullary structure were consistent with Bundy's hair."},
+      {label:"Fiber Trace Evidence",text:"Pantyhose mask analyzed for fiber characteristics, consistent with Bundy's clothing under microscopic comparison."}
     ],
-    victims:["Lisa Levy — murdered","Margaret Bowman — murdered","Karen Chandler — survived","Kathy Kleiner — survived","Cheryl Thomas — survived, permanent hearing loss"]
+    victims:["Lisa Levy, murdered","Margaret Bowman, murdered","Karen Chandler, survived","Kathy Kleiner, survived","Cheryl Thomas, survived, permanent hearing loss"]
   },
   {
     id:10,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",
-    facts:["Abducted 12-year-old Kimberly Leach from outside her middle school — broad daylight","Multiple witnesses including a police officer saw a man matching Bundy's description","Body found 2 months later in a state park, 35 miles away","Youngest known victim — his final murder","Arrested 6 days later"],
+    facts:["Abducted 12-year-old Kimberly Leach from outside her middle school, broad daylight","Multiple witnesses including a police officer saw a man matching Bundy's description","Body found 2 months later in a state park, 35 miles away","Youngest known victim, his final murder","Arrested 6 days later"],
     forensic:[
-      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval — findings were consistent with her disappearance date."},
-      {label:"Fiber Cross-Transfer",text:"White nylon fibers from Leach's clothing matched van carpet. Fibers from both Bundy's AND Leach's clothing found on the same carpet — proving both were in the van."},
-      {label:"Soil Comparison",text:"Soil from van's wheel wells matched the recovery site — placing the van there, not at Bundy's claimed locations."},
-      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's blood type — corroborated fiber and soil evidence."},
-      {label:"Eyewitness — Van ID",text:"An FSU fire marshal testified he saw Bundy leading a young girl matching Leach's description toward the white van on the morning she disappeared."}
+      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval, findings were consistent with her disappearance date."},
+      {label:"Fiber Cross-Transfer",text:"White nylon fibers from Leach's clothing matched van carpet. Fibers from both Bundy's AND Leach's clothing found on the same carpet, proving both were in the van."},
+      {label:"Soil Comparison",text:"Soil from van's wheel wells matched the recovery site, placing the van there, not at Bundy's claimed locations."},
+      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's blood type, corroborated fiber and soil evidence."},
+      {label:"Eyewitness, Van ID",text:"An FSU fire marshal testified he saw Bundy leading a young girl matching Leach's description toward the white van on the morning she disappeared."}
     ],
-    victims:["Kimberly Diane Leach, age 12 — final known victim"]
+    victims:["Kimberly Diane Leach, age 12, final known victim"]
   },
   {
-    id:11,year:"Feb 15, 1978",title:"Final Arrest — Pensacola",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",
-    facts:["Officer David Lee spotted a stolen VW Beetle driving erratically at 1:30 AM","Driver fled on foot — Lee tackled and arrested him","Gave a fake name: 'Kenneth Misner'","Fingerprint check confirmed identity within hours: Ted Bundy","During 46 days on the run after Escape #2: killed at least 3 more people"],
+    id:11,year:"Feb 15, 1978",title:"Final Arrest, Pensacola",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",
+    facts:["Officer David Lee spotted a stolen VW Beetle driving erratically at 1:30 AM","Driver fled on foot, Lee tackled and arrested him","Gave a fake name: 'Kenneth Misner'","Fingerprint check confirmed identity within hours: Ted Bundy","During 46 days on the run after Escape #2: killed at least 3 more people"],
     forensic:[
-      {label:"AFIS Fingerprint ID",text:"One of the first documented uses of AFIS (Automated Fingerprint Identification System) to unmask a suspect using a false identity — matched his prints to Utah arrest records."},
-      {label:"Vehicle Processing",text:"Stolen VW processed for fingerprints, trace hair, and fibers — results linked to both the Chi Omega and Leach crime scenes."},
-      {label:"Chain of Custody",text:"All evidence from arrest — clothing, personal items, vehicle — documented and preserved to maintain legal chain of custody for trial."}
+      {label:"AFIS Fingerprint ID",text:"One of the first documented uses of AFIS (Automated Fingerprint Identification System) to unmask a suspect using a false identity, matched his prints to Utah arrest records."},
+      {label:"Vehicle Processing",text:"Stolen VW processed for fingerprints, trace hair, and fibers, results linked to both the Chi Omega and Leach crime scenes."},
+      {label:"Chain of Custody",text:"All evidence from arrest, clothing, personal items, vehicle, documented and preserved to maintain legal chain of custody for trial."}
     ]
   },
   {
     id:12,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",
-    facts:["First criminal trial ever broadcast live on national TV","Bundy represented himself — created a media spectacle","Prosecution built case entirely around forensic odontology","Jury deliberated less than 7 hours"],
+    facts:["First criminal trial ever broadcast live on national TV","Bundy represented himself, created a media spectacle","Prosecution built case entirely around forensic odontology","Jury deliberated less than 7 hours"],
     forensic:[
-      {label:"Dr. Souviron — Bite Mark",text:"Enlarged photos + dental cast overlays showed the bite pattern — unique chipped incisor and double-bite — matched Bundy's teeth. Testified: no reasonable doubt."},
-      {label:"Dr. Lowell Levine — Corroboration",text:"Second independent forensic odontologist reached the same conclusion — powerful corroborating expert testimony."},
-      {label:"Microscopic Hair",text:"Analyst testified hairs from pantyhose mask were consistent with Bundy's — based on medullary index, pigment granules, and scale pattern."},
-      {label:"Eyewitness Nita Neary",text:"Sorority member saw a man leaving with a log the night of the attack — identified him in court as Bundy."}
+      {label:"Dr. Souviron, Bite Mark",text:"Enlarged photos + dental cast overlays showed the bite pattern, unique chipped incisor and double-bite, matched Bundy's teeth. Testified: no reasonable doubt."},
+      {label:"Dr. Lowell Levine, Corroboration",text:"Second independent forensic odontologist reached the same conclusion, powerful corroborating expert testimony."},
+      {label:"Microscopic Hair",text:"Analyst testified hairs from pantyhose mask were consistent with Bundy's, based on medullary index, pigment granules, and scale pattern."},
+      {label:"Eyewitness Nita Neary",text:"Sorority member saw a man leaving with a log the night of the attack, identified him in court as Bundy."}
     ],
-    verdict:["<strong>Guilty</strong> — Two counts First-Degree Murder (Levy + Bowman)","<strong>Guilty</strong> — Two counts Attempted Murder, two counts Burglary","<strong>Sentence:</strong> Death by electric chair","<strong>Impact:</strong> Established forensic odontology as legally admissible in US courts — precedent still followed today"],
-    testimony:["<strong>Dr. Richard Souviron</strong> — Bite mark match","<strong>Dr. Lowell Levine</strong> — Corroborating odontology","<strong>Nita Neary</strong> — Eyewitness, saw Bundy leaving","<strong>Karen Chandler & Kathy Kleiner</strong> — Surviving victims","<strong>Forensic Hair Analyst</strong> — Pantyhose trace evidence","<strong>Medical Examiner</strong> — Cause of death, blunt force documentation"]
+    verdict:["<strong>Guilty</strong>, Two counts First-Degree Murder (Levy + Bowman)","<strong>Guilty</strong>, Two counts Attempted Murder, two counts Burglary","<strong>Sentence:</strong> Death by electric chair","<strong>Impact:</strong> Established forensic odontology as legally admissible in US courts, precedent still followed today"],
+    testimony:["<strong>Dr. Richard Souviron</strong>, Bite mark match","<strong>Dr. Lowell Levine</strong>, Corroborating odontology","<strong>Nita Neary</strong>, Eyewitness, saw Bundy leaving","<strong>Karen Chandler & Kathy Kleiner</strong>, Surviving victims","<strong>Forensic Hair Analyst</strong>, Pantyhose trace evidence","<strong>Medical Examiner</strong>, Cause of death, blunt force documentation"]
   },
   {
     id:13,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",
-    facts:["No eyewitness to the murder, no bite mark evidence","Case built entirely on physical and trace evidence","Prosecution called it a 'masterclass in circumstantial forensic science'","Bundy continued denying crimes publicly — while confessing privately to FBI"],
+    facts:["No eyewitness to the murder, no bite mark evidence","Case built entirely on physical and trace evidence","Prosecution called it a 'masterclass in circumstantial forensic science'","Bundy continued denying crimes publicly, while confessing privately to FBI"],
     forensic:[
-      {label:"Fiber Cross-Transfer — Mary Hinson (FBI)",text:"FBI analyst testified fibers from Leach's clothing matched the van carpet, and fibers from both Bundy's AND Leach's clothing found together — proving contact. Called it 'extremely probable' they were in the van together."},
-      {label:"Soil Comparison",text:"Van interior soil was inconsistent with Bundy's claimed locations but matched the Suwannee River recovery site — placing the van at the scene."},
-      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's type — corroborated by fiber and soil evidence."},
+      {label:"Fiber Cross-Transfer, Mary Hinson (FBI)",text:"FBI analyst testified fibers from Leach's clothing matched the van carpet, and fibers from both Bundy's AND Leach's clothing found together, proving contact. Called it 'extremely probable' they were in the van together."},
+      {label:"Soil Comparison",text:"Van interior soil was inconsistent with Bundy's claimed locations but matched the Suwannee River recovery site, placing the van at the scene."},
+      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's type, corroborated by fiber and soil evidence."},
       {label:"Eyewitness Testimony",text:"FSU fire marshal testified he saw Bundy leading a girl matching Leach's description toward the white van at her school the morning she disappeared."}
     ],
-    verdict:["<strong>Guilty</strong> — First-Degree Murder, Kimberly Diane Leach","<strong>Sentence:</strong> Death by electric chair — Bundy's 3rd death sentence","<strong>Impact:</strong> Set precedent for fiber cross-transfer as a standard forensic prosecution tool"],
-    testimony:["<strong>Mary Hinson (FBI)</strong> — Fiber cross-transfer analysis","<strong>Forensic Soil Analyst</strong> — Van soil vs. crime scene","<strong>FSU Fire Marshal</strong> — Eyewitness, van identification","<strong>Medical Examiner</strong> — Cause of death & postmortem interval","<strong>Forensic Entomologist</strong> — Insect evidence for time of death","<strong>Law Enforcement</strong> — Chain of custody for all physical evidence"]
+    verdict:["<strong>Guilty</strong>, First-Degree Murder, Kimberly Diane Leach","<strong>Sentence:</strong> Death by electric chair, Bundy's 3rd death sentence","<strong>Impact:</strong> Set precedent for fiber cross-transfer as a standard forensic prosecution tool"],
+    testimony:["<strong>Mary Hinson (FBI)</strong>, Fiber cross-transfer analysis","<strong>Forensic Soil Analyst</strong>, Van soil vs. crime scene","<strong>FSU Fire Marshal</strong>, Eyewitness, van identification","<strong>Medical Examiner</strong>, Cause of death & postmortem interval","<strong>Forensic Entomologist</strong>, Insect evidence for time of death","<strong>Law Enforcement</strong>, Chain of custody for all physical evidence"]
   },
   {
     id:14,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison, Starke",lat:29.9432,lng:-82.1101,type:"trial",
-    facts:["Night before execution: confessed to 30 murders to FBI Agent William Hagmaier","Experts believe real total exceeds 100","Jan 24, 1989 at 7:06 AM: executed by electric chair","Age 42 — Florida State Prison, Starke","~200 people gathered outside, many cheering"],
+    facts:["Night before execution: confessed to 30 murders to FBI Agent William Hagmaier","Experts believe real total exceeds 100","Jan 24, 1989 at 7:06 AM: executed by electric chair","Age 42, Florida State Prison, Starke","~200 people gathered outside, many cheering"],
     forensic:[
-      {label:"Post-Execution DNA Work",text:"Modern STR DNA profiling applied retroactively to preserved biological evidence — reopened dozens of cold cases and helped identify additional victims."},
-      {label:"Bite Mark Precedent (Lasting)",text:"Chi Omega trial permanently codified bite mark evidence in American courts — still referenced in forensic odontology today."},
-      {label:"FBI Behavioral Science Unit",text:"Criminal profiling techniques developed during Bundy's case were formalized into BSU methodology — still used to profile serial offenders."},
+      {label:"Post-Execution DNA Work",text:"Modern STR DNA profiling applied retroactively to preserved biological evidence, reopened dozens of cold cases and helped identify additional victims."},
+      {label:"Bite Mark Precedent (Lasting)",text:"Chi Omega trial permanently codified bite mark evidence in American courts, still referenced in forensic odontology today."},
+      {label:"FBI Behavioral Science Unit",text:"Criminal profiling techniques developed during Bundy's case were formalized into BSU methodology, still used to profile serial offenders."},
       {label:"AFIS Expansion",text:"His final arrest helped accelerate national expansion and standardization of fingerprint database technology across the US."},
-      {label:"ViCAP Created (1985)",text:"FBI's Violent Criminal Apprehension Program created directly in response to cases like Bundy's — enables cross-state tracking of serial violent crimes."},
+      {label:"ViCAP Created (1985)",text:"FBI's Violent Criminal Apprehension Program created directly in response to cases like Bundy's, enables cross-state tracking of serial violent crimes."},
       {label:"Legislative Impact",text:"Missing Children Act of 1982 and the National Center for Missing & Exploited Children (NCMEC, 1984) both created in direct response to Bundy's crimes."}
     ],
     victims:["30 confessed. Estimated 100+. Only ~20 victims ever positively identified."]
@@ -423,7 +423,7 @@ const events=[
 ];
 
 const murders=[
-  {name:"Joni Lenz",date:"Jan 4, 1974",loc:"Seattle, WA",lat:47.6062,lng:-122.3321,note:"Survived — permanent brain damage"},
+  {name:"Joni Lenz",date:"Jan 4, 1974",loc:"Seattle, WA",lat:47.6062,lng:-122.3321,note:"Survived, permanent brain damage"},
   {name:"Linda Ann Healy",date:"Feb 1, 1974",loc:"Seattle, WA",lat:47.6588,lng:-122.3103},
   {name:"Donna Manson",date:"Mar 12, 1974",loc:"Olympia, WA",lat:47.0379,lng:-122.9007},
   {name:"Susan Rancourt",date:"Apr 17, 1974",loc:"Ellensburg, WA",lat:46.9965,lng:-120.5478},
@@ -439,7 +439,7 @@ const murders=[
   {name:"Caryn Campbell",date:"Jan 12, 1975",loc:"Snowmass Village, CO",lat:39.2083,lng:-106.9378},
   {name:"Julie Cunningham",date:"Mar 15, 1975",loc:"Vail, CO",lat:39.6433,lng:-106.3781},
   {name:"Denise Oliverson",date:"Apr 6, 1975",loc:"Grand Junction, CO",lat:39.0639,lng:-108.5506},
-  {name:"Lynette Culver",date:"May 6, 1975",loc:"Pocatello, ID",lat:42.8713,lng:-112.4455,note:"Age 12 — youngest confirmed victim"},
+  {name:"Lynette Culver",date:"May 6, 1975",loc:"Pocatello, ID",lat:42.8713,lng:-112.4455,note:"Age 12, youngest confirmed victim"},
   {name:"Susan Curtis",date:"Jun 28, 1975",loc:"Provo, UT",lat:40.2338,lng:-111.6585},
   {name:"Unknown Victim #1",date:"1974",loc:"Oregon",lat:44.1,lng:-121.5},
   {name:"Unknown Victim #2",date:"1974",loc:"Washington",lat:47.2,lng:-121.8},
@@ -449,8 +449,8 @@ const murders=[
   {name:"Unknown Victim #6",date:"1976",loc:"Florida",lat:30.2,lng:-85.0},
   {name:"Lisa Levy",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4420,lng:-84.2968},
   {name:"Margaret Bowman",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4410,lng:-84.2975},
-  {name:"Cheryl Thomas",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4400,lng:-84.2900,note:"Survived — permanent hearing loss"},
-  {name:"Kimberly Leach",date:"Feb 9, 1978",loc:"Lake City, FL",lat:30.1897,lng:-82.6382,note:"Age 12 — final known victim"},
+  {name:"Cheryl Thomas",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4400,lng:-84.2900,note:"Survived, permanent hearing loss"},
+  {name:"Kimberly Leach",date:"Feb 9, 1978",loc:"Lake City, FL",lat:30.1897,lng:-82.6382,note:"Age 12, final known victim"},
   {name:"Unknown Victim #7",date:"1978",loc:"Florida",lat:29.8,lng:-82.3},
   {name:"Unknown Victim #8",date:"1978",loc:"Florida",lat:30.5,lng:-84.5},
 ];
@@ -552,7 +552,7 @@ function buildDetailHTML(ev){
     left+=`<div class="det-block testimony-block"><div class="det-block-label">Who Testified</div>${ul(ev.testimony,'testimony-list')}</div>`;
   }
 
-  // Right column — forensics
+  // Right column, forensics
   let right='';
   if(hasRight){
     const items=ev.forensic.map(f=>`<li><span class="f-label">${f.label}</span><span class="f-text">${f.text}</span></li>`).join('');
@@ -615,4 +615,3 @@ function toggleSources(){
 </script>
 </body>
 </html>
-
