@@ -521,7 +521,8 @@ function buildTL(){
 }
 
 function mkBlock(cls,label,labelColor,innerHTML){
-  return`<div class="det-block ${cls}"><div class="det-block-label"${labelColor?` style="color:${labelColor}"`:'']}>${label}</div>${innerHTML}</div>`;
+  var styleAttr = labelColor ? ' style="color:'+labelColor+'"' : '';
+  return '<div class="det-block '+cls+'"><div class="det-block-label"'+styleAttr+'>'+label+'</div>'+innerHTML+'</div>';
 }
 
 function ul(items,cls){
