@@ -1,617 +1,498 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ted Bundy, Interactive Crime Timeline</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Riparian Field Station -- Bronx Zoo eDNA Project</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#1e1e1e;--bg2:#272727;--surface:#2e2e2e;--surface2:#363636;
-  --border:#4a4a4a;--border2:#5a5a5a;--text:#f0f0ec;--text2:#c0c0bc;
-  --text3:#888;--red:#c0392b;--red2:#8b0000;--blue:#2471a3;
-  --orange:#d35400;--green:#1e8449;--bio:#9b59b6;
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;overflow:hidden;}
-.screen{position:fixed;inset:0;display:none;}
-.screen.active{display:flex;}
+  :root{
+    --paper:#F4EFE1;
+    --paper-dark:#e9e0c8;
+    --ink:#1c2620;
+    --moss:#3f5a43;
+    --moss-dark:#2b3f2e;
+    --river:#1c4258;
+    --river-light:#3d7a96;
+    --flag:#d9581f;
+    --flag-light:#f0946a;
+    --line:#c9bfa0;
+    --muted:#6b6a5e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--ink);font-family:'Inter',sans-serif;color:var(--ink);}
+  ::selection{background:var(--flag-light);}
 
-#introScreen{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
-.intro-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(139,0,0,0.18) 0%,transparent 65%);}
-.intro-grain{position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
-.intro-content{position:relative;z-index:10;text-align:center;padding:0 24px;}
-.intro-label{font-size:11px;letter-spacing:6px;color:var(--text3);text-transform:uppercase;margin-bottom:28px;opacity:0;animation:up 1s ease .2s forwards;}
-.intro-title{font-family:'Playfair Display',serif;font-size:clamp(56px,10vw,110px);font-weight:400;color:var(--text);line-height:1;letter-spacing:-3px;opacity:0;animation:up 1.2s ease .6s forwards;}
-.intro-title em{color:var(--red);font-style:normal;}
-.intro-rule{width:0;height:1px;background:var(--red2);margin:24px auto;animation:growW 1.2s ease 1.4s forwards;}
-.intro-dates{font-size:12px;letter-spacing:5px;color:var(--text3);text-transform:uppercase;opacity:0;animation:up 1s ease 1.8s forwards;}
-.intro-by{margin-top:40px;font-size:11px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;opacity:0;animation:up 1s ease 2.2s forwards;}
-.intro-by span{color:var(--text);font-weight:700;}
-.intro-btn{margin-top:48px;padding:14px 52px;background:transparent;border:1.5px solid var(--red);color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;cursor:pointer;transition:all .3s;opacity:0;animation:up 1s ease 2.6s forwards;}
-.intro-btn:hover{background:var(--red);color:#fff;box-shadow:0 0 24px rgba(192,57,43,0.3);}
-@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes growW{to{width:70px}}
+  #app{position:relative;width:100vw;height:100vh;overflow:hidden;}
 
-#dramaticScreen{background:var(--bg);flex-direction:column;align-items:center;justify-content:center;overflow:hidden;opacity:0;transition:opacity .8s ease;}
-#dramaticScreen.fade-in{opacity:1;}
-.dram-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(139,0,0,0.08) 0%,transparent 70%);}
-.dram-content{position:relative;z-index:10;text-align:center;max-width:680px;padding:0 32px;}
-.dram-eyebrow{font-size:12px;letter-spacing:6px;color:var(--text3);text-transform:uppercase;opacity:0;}
-.dram-stat{font-family:'Playfair Display',serif;font-size:clamp(15px,2.2vw,20px);color:var(--text2);line-height:2.9;opacity:0;}
-.dram-stat .n{color:var(--red);font-size:1.35em;font-weight:700;}
-.dram-stat .em{color:var(--text);font-style:italic;}
-.dram-rule{width:0;height:1px;background:var(--red2);margin:36px auto;}
-.dram-btn{margin-top:48px;padding:14px 52px;background:transparent;border:1.5px solid var(--border2);color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;cursor:pointer;transition:all .3s;opacity:0;}
-.dram-btn:hover{background:var(--red);color:#fff;border-color:var(--red);}
+  /* ---------- MAP ---------- */
+  #map{position:absolute;inset:0;background:#0d1410;}
+  .leaflet-tile-pane{filter:saturate(1.08) contrast(1.05);}
 
-#appScreen{flex-direction:column;z-index:1;}
-#map{position:absolute;inset:0;z-index:1;}
+  /* ---------- HEADER BAR ---------- */
+  #topbar{
+    position:absolute;top:0;left:0;right:0;z-index:1000;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 22px;
+    background:linear-gradient(180deg, rgba(10,14,10,.78), rgba(10,14,10,0));
+    pointer-events:none;
+  }
+  #topbar .brand{display:flex;align-items:baseline;gap:12px;pointer-events:auto;}
+  #topbar h1{
+    font-family:'Fraunces',serif;font-weight:700;font-size:22px;letter-spacing:.2px;
+    color:var(--paper);margin:0;
+  }
+  #topbar .tag{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--flag-light);background:rgba(217,88,31,.16);border:1px solid rgba(240,148,106,.5);
+    padding:4px 8px;border-radius:3px;
+  }
+  #menuBtn{
+    pointer-events:auto;
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    background:var(--paper);color:var(--ink);border:none;border-radius:3px;padding:9px 14px;
+    cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35);
+  }
+  #menuBtn:hover{background:#fff;}
 
-.topbar{position:absolute;top:0;left:0;right:0;z-index:500;background:rgba(30,30,30,0.97);border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:12px 22px;box-shadow:0 2px 10px rgba(0,0,0,0.4);}
-.tb-left h1{font-size:12px;letter-spacing:3px;color:var(--red);text-transform:uppercase;font-weight:700;}
-.tb-left p{font-size:10px;color:var(--text3);letter-spacing:2px;margin-top:2px;}
-.tb-right{display:flex;gap:8px;align-items:center;}
-.tb-btn{padding:7px 16px;background:transparent;border:1.5px solid var(--border);color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
-.tb-btn:hover,.tb-btn.on{border-color:var(--red);color:var(--red);background:rgba(192,57,43,0.1);}
+  /* ---------- SIDEBAR ---------- */
+  #sidebar{
+    position:absolute;top:0;bottom:0;left:0;width:340px;max-width:86vw;z-index:1200;
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(90,80,50,.05) 28px);
+    border-right:2px solid var(--line);
+    transform:translateX(-100%);transition:transform .38s cubic-bezier(.2,.8,.2,1);
+    display:flex;flex-direction:column;
+    box-shadow:8px 0 24px rgba(0,0,0,.35);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #sidebar .sb-head{padding:20px 20px 12px;border-bottom:1px dashed var(--line);}
+  #sidebar .sb-head .eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--moss);text-transform:uppercase;}
+  #sidebar .sb-head h2{font-family:'Fraunces',serif;font-size:23px;margin:6px 0 4px;color:var(--moss-dark);}
+  #sidebar .sb-head p{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0;}
+  #closeSidebar{position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;}
 
-.legend{position:absolute;bottom:26px;left:18px;z-index:500;background:rgba(30,30,30,0.97);border:1.5px solid var(--border);padding:14px 17px;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
-.leg-title{font-size:9px;letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;font-weight:700;}
-.leg-item{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px;color:var(--text2);}
-.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.leg-div{height:1px;background:var(--border);margin:7px 0;}
-.leg-count{font-size:9px;color:var(--text3);letter-spacing:1px;}
-.leg-count span{color:var(--red);font-weight:700;}
+  .sb-scroll{overflow-y:auto;flex:1;padding:10px 0 20px;}
+  .sb-section{padding:10px 20px 4px;}
+  .sb-section .lbl{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
 
-#tlOverlay{position:absolute;inset:0;z-index:700;background:rgba(25,25,25,0.97);backdrop-filter:blur(8px);display:none;flex-direction:column;opacity:0;transition:opacity .4s ease;pointer-events:none;}
-#tlOverlay.open{display:flex;pointer-events:all;}
-#tlOverlay.vis{opacity:1;}
-.tl-topbar{position:absolute;top:0;left:0;right:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;z-index:10;border-bottom:1.5px solid var(--border);background:rgba(30,30,30,0.8);}
-.tl-label{font-size:10px;letter-spacing:5px;color:var(--red);text-transform:uppercase;font-weight:700;}
-.tl-close-btn{background:none;border:1.5px solid var(--border);color:var(--text2);font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:6px 16px;font-family:'IBM Plex Mono',monospace;transition:all .2s;}
-.tl-close-btn:hover{border-color:var(--red);color:var(--red);}
-.tl-h-wrap{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;padding-top:58px;scrollbar-width:thin;scrollbar-color:#555 transparent;}
-.tl-h-wrap::-webkit-scrollbar{height:4px;}
-.tl-h-wrap::-webkit-scrollbar-thumb{background:#555;border-radius:2px;}
-.tl-track{position:relative;display:flex;align-items:center;height:100%;padding:0 80px;min-width:max-content;}
-.tl-spine{position:absolute;top:50%;height:1.5px;transform:translateY(-50%);pointer-events:none;z-index:0;left:0;right:0;background:linear-gradient(to right,transparent,var(--red2) 2%,var(--red) 50%,var(--red2) 98%,transparent);box-shadow:0 0 8px rgba(139,0,0,0.4);}
-.tl-node{position:relative;display:flex;align-items:center;margin:0 36px;cursor:pointer;z-index:2;opacity:0;transform:scale(0.7);transition:opacity .4s ease,transform .4s ease;}
-.tl-node.show{opacity:1;transform:scale(1);}
-.tl-node.above{flex-direction:column;justify-content:flex-end;align-self:flex-start;height:calc(50% - 5px);}
-.tl-node.below{flex-direction:column-reverse;justify-content:flex-start;align-self:flex-end;height:calc(50% - 5px);}
-.tl-card{width:160px;background:var(--surface);border:1.5px solid var(--border);overflow:hidden;transition:all .25s;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-.tl-node:hover .tl-card,.tl-node.sel .tl-card{border-color:var(--red);box-shadow:0 4px 18px rgba(192,57,43,0.25);}
-.tl-card-body{padding:10px 10px 11px;}
-.tl-card-type{font-size:7px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;font-weight:700;}
-.tl-card-year{font-size:7px;color:var(--text3);letter-spacing:1px;margin-bottom:3px;}
-.tl-card-name{font-size:11px;color:var(--text);line-height:1.3;font-weight:700;}
-.tl-card-loc{font-size:7px;color:var(--text3);margin-top:3px;}
-.tl-conn{width:1.5px;flex-shrink:0;min-height:24px;flex:1;max-height:80px;}
-.tl-node.above .tl-conn{background:linear-gradient(to bottom,rgba(192,57,43,0.05),rgba(192,57,43,0.6));}
-.tl-node.below .tl-conn{background:linear-gradient(to top,rgba(192,57,43,0.05),rgba(192,57,43,0.6));}
-.tl-node:hover .tl-conn,.tl-node.sel .tl-conn{background:linear-gradient(to bottom,rgba(192,57,43,0.1),var(--red));}
-.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;z-index:3;border:2px solid rgba(30,30,30,0.9);transition:transform .2s,box-shadow .2s;}
-.tl-node:hover .tl-dot,.tl-node.sel .tl-dot{transform:scale(1.9);}
+  .site-row{
+    display:flex;align-items:center;gap:10px;
+    width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    padding:9px 8px;border-radius:6px;margin-bottom:2px;
+    font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);
+    transition:background .15s;
+  }
+  .site-row:hover{background:var(--paper-dark);}
+  .site-row.active{background:var(--moss);color:var(--paper);}
+  .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px rgba(0,0,0,.15) inset;}
+  .site-row small{display:block;font-family:'Space Mono',monospace;font-size:10px;opacity:.7;margin-top:1px;}
 
-/* DETAIL CARD */
-.det-card{position:absolute;bottom:26px;left:50%;transform:translateX(-50%) translateY(14px);z-index:800;width:760px;max-width:calc(100vw - 36px);background:rgba(30,30,30,0.99);border:1.5px solid var(--border);border-top:3px solid var(--red);opacity:0;pointer-events:none;transition:all .3s ease;display:flex;flex-direction:column;max-height:65vh;box-shadow:0 8px 36px rgba(0,0,0,0.5);}
-.det-card.visible{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);}
-.det-hdr{padding:16px 22px 0;flex-shrink:0;}
-.det-close{position:absolute;top:13px;right:16px;background:none;border:none;color:#666;font-size:17px;cursor:pointer;transition:color .2s;}
-.det-close:hover{color:var(--red);}
-.det-type{font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-bottom:4px;font-weight:700;}
-.det-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);font-weight:700;}
-.det-meta{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;margin-bottom:12px;}
-.det-scroll{overflow-y:auto;padding:0 22px 18px;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.det-scroll::-webkit-scrollbar{width:3px;}
-.det-scroll::-webkit-scrollbar-thumb{background:#555;}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px;color:var(--ink);}
+  .legend-item .dot{width:9px;height:9px;}
 
-/* Sections */
-.det-col{display:flex;flex-direction:column;gap:12px;}
-.det-block{padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);}
-.det-block-label{font-size:8px;letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;font-weight:700;padding-bottom:5px;border-bottom:1px solid var(--border);}
+  .materials-list{list-style:none;margin:0;padding:0;font-size:12.5px;}
+  .materials-list li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted var(--line);color:var(--ink);}
+  .materials-list li span.qty{font-family:'Space Mono',monospace;color:var(--moss);}
 
-/* Quick facts */
-.facts-list{list-style:none;padding:0;margin:0;}
-.facts-list li{font-size:12px;color:var(--text2);line-height:1.6;padding:5px 0 5px 16px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
-.facts-list li:last-child{border-bottom:none;}
-.facts-list li::before{content:"";position:absolute;left:0;color:var(--red);font-size:10px;top:7px;}
-.facts-list li strong{color:var(--text);}
+  #sidebar .sb-foot{padding:14px 20px;border-top:1px dashed var(--line);font-size:11px;color:var(--muted);line-height:1.5;}
 
-/* Forensics */
-.forensic-block{border-left:3px solid var(--red);}
-.forensic-block .det-block-label{color:var(--red);}
-.forensic-list{list-style:none;padding:0;margin:0;}
-.forensic-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:7px 0 7px 22px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
-.forensic-list li:last-child{border-bottom:none;}
-.forensic-list li::before{content:"";position:absolute;left:0;font-size:10px;top:9px;}
-.forensic-list li .f-label{color:var(--red);font-weight:700;display:block;font-size:11px;margin-bottom:2px;}
-.forensic-list li .f-text{color:var(--text2);}
+  /* ---------- SITE PANEL (data card) ---------- */
+  #panelWrap{
+    position:absolute;top:0;bottom:0;right:0;width:390px;max-width:92vw;z-index:1100;
+    transform:translateX(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);
+    display:flex;
+  }
+  #panelWrap.open{transform:translateX(0);}
+  #panel{
+    background:var(--paper);width:100%;overflow-y:auto;
+    box-shadow:-10px 0 26px rgba(0,0,0,.4);
+    border-left:2px solid var(--line);
+  }
+  #panel .p-head{
+    padding:22px 22px 16px;position:relative;
+    background:var(--moss-dark);color:var(--paper);
+  }
+  #panel .p-head .kicker{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#b9d0b8;}
+  #panel .p-head h2{font-family:'Fraunces',serif;font-size:26px;margin:6px 0 8px;line-height:1.1;}
+  #panel .p-head .badges{display:flex;gap:6px;flex-wrap:wrap;}
+  #panel .badge{
+    font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;
+    padding:3px 7px;border-radius:3px;border:1px solid rgba(255,255,255,.35);color:var(--paper);
+  }
+  #closePanel{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--paper);font-size:20px;cursor:pointer;}
 
-/* Verdict */
-.verdict-block{border-left:3px solid var(--green);}
-.verdict-block .det-block-label{color:var(--green);}
-.verdict-list{list-style:none;padding:0;margin:0;}
-.verdict-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:5px 0 5px 20px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
-.verdict-list li:last-child{border-bottom:none;}
-.verdict-list li::before{content:"";position:absolute;left:0;font-size:10px;top:7px;}
-.verdict-list li strong{color:#2ecc71;}
+  .p-body{padding:6px 22px 30px;}
+  .datablock{margin-top:22px;}
+  .datablock .dh{
+    display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  }
+  .datablock .dh .ico{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;}
+  .datablock .dh h3{font-family:'Fraunces',serif;font-size:16px;margin:0;color:var(--ink);}
+  .datablock .dh .n{margin-left:auto;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted);}
 
-/* Testimony */
-.testimony-block{border-left:3px solid var(--blue);}
-.testimony-block .det-block-label{color:#5dade2;}
-.testimony-list{list-style:none;padding:0;margin:0;}
-.testimony-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:5px 0 5px 20px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
-.testimony-list li:last-child{border-bottom:none;}
-.testimony-list li::before{content:"";position:absolute;left:0;font-size:10px;top:7px;}
-.testimony-list li strong{color:#5dade2;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px 10px;}
+  .stat .v{font-family:'Space Mono',monospace;font-size:16px;color:var(--ink);font-weight:700;}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
 
-/* Victims */
-.victim-block .det-block-label{color:#e74c3c;}
-.victim-list{list-style:none;padding:0;margin:0;}
-.victim-list li{font-size:12px;color:var(--text2);line-height:1.7;padding:4px 0 4px 14px;position:relative;border-bottom:1px solid rgba(74,74,74,0.3);}
-.victim-list li:last-child{border-bottom:none;}
-.victim-list li::before{content:"";position:absolute;left:0;color:var(--red);}
+  .barrow{margin-bottom:7px;}
+  .barrow .bl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px;}
+  .barrow .bl b{color:var(--ink);font-family:'Space Mono',monospace;font-weight:700;}
+  .bartrack{height:8px;background:var(--paper-dark);border-radius:4px;overflow:hidden;border:1px solid var(--line);}
+  .barfill{height:100%;border-radius:4px;}
 
-/* full-width block for single-column events */
-.det-scroll.single-col{grid-template-columns:1fr;}
+  .detect-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dotted var(--line);font-size:12.5px;}
+  .detect-row:last-child{border-bottom:none;}
+  .pill{font-family:'Space Mono',monospace;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700;letter-spacing:.4px;}
+  .pill.yes{background:#e4efe0;color:var(--moss-dark);}
+  .pill.no{background:#f1efe6;color:var(--muted);}
 
-#sourcesPanel{position:absolute;bottom:0;left:0;right:0;z-index:800;background:rgba(30,30,30,0.99);border-top:1.5px solid var(--border);max-height:0;overflow:hidden;transition:max-height .4s ease;box-shadow:0 -4px 16px rgba(0,0,0,0.3);}
-#sourcesPanel.open{max-height:260px;}
-.src-inner{padding:20px 26px 24px;overflow-y:auto;max-height:260px;}
-.src-inner::-webkit-scrollbar{width:3px;}
-.src-title{font-size:9px;letter-spacing:5px;color:var(--red);text-transform:uppercase;margin-bottom:16px;font-weight:700;}
-.src-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.src-item{font-size:11px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--surface);border:1px solid var(--border);}
-.src-item .src-cat{color:var(--red);display:block;font-size:9px;margin-bottom:3px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
-.src-close{float:right;background:none;border:none;color:#555;font-size:15px;cursor:pointer;margin-top:-3px;}
-.src-close:hover{color:var(--red);}
+  .note{font-size:11.5px;color:var(--muted);background:var(--paper-dark);border-left:3px solid var(--flag);padding:8px 10px;border-radius:0 5px 5px 0;margin-top:6px;line-height:1.5;}
 
-.murder-popup .leaflet-popup-content-wrapper{background:var(--surface);border:1.5px solid var(--border);border-radius:0;box-shadow:0 4px 16px rgba(0,0,0,0.4);}
-.murder-popup .leaflet-popup-tip{background:var(--border);}
-.murder-popup .leaflet-popup-content{margin:11px 14px;font-family:'IBM Plex Mono',monospace;}
-.mp-name{font-size:12px;color:var(--text);margin-bottom:3px;font-weight:700;}
-.mp-date{font-size:9px;color:var(--text3);letter-spacing:1px;}
-.mp-note{font-size:9px;color:var(--red);margin-top:3px;font-style:italic;}
-.leaflet-container{background:#1e1e1e !important;}
-@keyframes dashMove{to{stroke-dashoffset:-20;}}
-.story-path{animation:dashMove 2s linear infinite;}
+  .meta-row{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.6;}
+  .meta-row b{color:var(--ink);}
+
+  .empty-note{font-size:12.5px;color:var(--muted);font-style:italic;padding:10px 0;}
+
+  /* leaflet popup override */
+  .leaflet-popup-content-wrapper{background:var(--paper);border-radius:6px;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:12.5px;margin:10px 12px;}
+  .leaflet-popup-content b{font-family:'Fraunces',serif;font-size:14px;}
+  .leaflet-popup-tip{background:var(--paper);}
+
+  /* flag marker */
+  .flagpin{position:relative;width:26px;height:34px;}
+  .flagpin .pole{position:absolute;left:12px;top:6px;width:2px;height:28px;background:#2a2a24;}
+  .flagpin .flag{position:absolute;left:13px;top:4px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:15px solid var(--c,#3f5a43);filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));}
+  .flagpin .base{position:absolute;left:8px;bottom:0;width:10px;height:4px;border-radius:50%;background:rgba(0,0,0,.35);}
+
+  /* scrollbar */
+  #sidebar ::-webkit-scrollbar, #panel::-webkit-scrollbar{width:7px;}
+  #sidebar ::-webkit-scrollbar-thumb, #panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  @media (max-width:640px){
+    #topbar h1{font-size:17px;}
+    #panelWrap{width:100vw;}
+    #sidebar{width:88vw;}
+  }
 </style>
 </head>
 <body>
-
-<div class="screen active" id="introScreen">
-  <div class="intro-bg"></div><div class="intro-grain"></div>
-  <div class="intro-content">
-    <div class="intro-label">True Crime, Forensic Case Study</div>
-    <div class="intro-title">Ted <em>Bundy</em></div>
-    <div class="intro-rule"></div>
-    <div class="intro-dates">November 24, 1946 &nbsp;—&nbsp; January 24, 1989</div>
-    <div class="intro-by">By <span>David Romero</span>, <span>Kahari Bradley</span> &amp; <span>Jhostin Bonifacio</span></div>
-    <button class="intro-btn" onclick="goDramatic()">Enter The Case &nbsp;→</button>
-  </div>
-</div>
-
-<div class="screen" id="dramaticScreen">
-  <div class="dram-bg"></div>
-  <div class="dram-content">
-    <div class="dram-eyebrow" id="de">A Case That Changed Forensic Science Forever</div>
-    <div class="dram-stat" id="ds">
-      He confessed to <span class="n">30</span> murders across <span class="n">7</span> states.<br>
-      Investigators believe the real number exceeds <span class="n">100.</span><br>
-      He escaped from custody <span class="em">twice.</span><br>
-      His trials pioneered <span class="em">bite mark evidence</span> in American courts.
-    </div>
-    <div class="dram-rule" id="dr"></div>
-    <button class="dram-btn" id="db" onclick="startApp()">View The Map &nbsp;→</button>
-  </div>
-</div>
-
-<div class="screen" id="appScreen">
-  <div class="topbar">
-    <div class="tb-left">
-      <h1>Ted Bundy, Interactive Crime Timeline & Forensic Analysis</h1>
-      <p>Active 1974–1978 &nbsp;·&nbsp; 30 confirmed murders &nbsp;·&nbsp; 7 states &nbsp;·&nbsp; Click any marker for full forensic detail</p>
-    </div>
-    <div class="tb-right">
-      <button class="tb-btn" onclick="toggleSources()">Sources</button>
-      <button class="tb-btn" id="tlBtn" onclick="toggleTL()"> Timeline</button>
-    </div>
-  </div>
+<div id="app">
   <div id="map"></div>
-  <div class="legend">
-    <div class="leg-title">Legend</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6"></div>Background / Bio</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#c0392b"></div>Murder / Crime</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#2471a3"></div>Arrest</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#d35400"></div>Escape</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#1e8449"></div>Trial / Execution</div>
-    <div class="leg-div"></div>
-    <div class="leg-count">All <span>30</span> confirmed murders pinned</div>
-  </div>
-  <div id="tlOverlay">
-    <div class="tl-topbar">
-      <div class="tl-label">Chronological Timeline, Scroll →</div>
-      <button class="tl-close-btn" onclick="toggleTL()"> Close</button>
-    </div>
-    <div class="tl-h-wrap">
-      <div class="tl-track" id="tlTrack"><div class="tl-spine" id="tlSpine"></div></div>
+
+  <div id="topbar">
+    <div class="brand">
+      <button id="menuBtn">☰ Sites</button>
+      <h1>Riparian Field Station</h1>
+      <span class="tag">Bronx Zoo · Summer 2026</span>
     </div>
   </div>
-  <div class="det-card" id="detCard">
-    <div class="det-hdr">
-      <button class="det-close" onclick="closeDet()"></button>
-      <div class="det-type" id="dType"></div>
-      <div class="det-title" id="dTitle"></div>
-      <div class="det-meta" id="dMeta"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <button id="closeSidebar">✕</button>
+    <div class="sb-head">
+      <span class="eyebrow">Field Notebook</span>
+      <h2>Riparian Habitat &amp; eDNA Monitoring</h2>
+      <p>Vegetation transects, water chemistry, environmental DNA, and camera-trap surveys collected across the Bronx River corridor inside the Bronx Zoo, July-August 2026. Tap a site below or a flag on the map to open its data.</p>
     </div>
-    <div class="det-scroll" id="detScroll"></div>
-  </div>
-  <div id="sourcesPanel">
-    <div class="src-inner">
-      <button class="src-close" onclick="toggleSources()"></button>
-      <div class="src-title">Sources & Citations</div>
-      <div class="src-grid">
-        <div class="src-item"><span class="src-cat">Book</span>Rule, Ann. <em>The Stranger Beside Me.</em> W.W. Norton, 1980.</div>
-        <div class="src-item"><span class="src-cat">Book</span>Michaud & Aynesworth. <em>The Only Living Witness.</em> Authorlink, 1999.</div>
-        <div class="src-item"><span class="src-cat">Government</span>FBI Behavioral Science Unit, Bundy Case Files, 1974–1989.</div>
-        <div class="src-item"><span class="src-cat">Forensics</span>Souviron, R. (1979). Bite mark evidence in <em>State v. Bundy.</em></div>
-        <div class="src-item"><span class="src-cat">Encyclopedia</span>Britannica, "Ted Bundy." britannica.com/biography/Ted-Bundy</div>
-        <div class="src-item"><span class="src-cat">Archive</span>Florida Dept. of Law Enforcement, Bundy Records, 1975–1989.</div>
-        <div class="src-item"><span class="src-cat">News</span>New York Times. "Bundy Is Put to Death in Florida." Jan 25, 1989.</div>
-        <div class="src-item"><span class="src-cat">Legal</span>State v. Bundy, 455 So.2d 330 (Fla. 1984), Chi Omega Trial Record.</div>
-        <div class="src-item"><span class="src-cat">Map Data</span>OpenStreetMap contributors, CartoDB dark_all tiles.</div>
+    <div class="sb-scroll">
+      <div class="sb-section">
+        <span class="lbl">Legend</span>
+        <div class="legend-item"><span class="dot" style="background:var(--river-light)"></span> eDNA / water chemistry site</div>
+        <div class="legend-item"><span class="dot" style="background:var(--moss)"></span> Vegetation transect site</div>
+        <div class="legend-item"><span class="dot" style="background:var(--flag)"></span> Camera trap site</div>
+        <div class="legend-item"><span class="dot" style="background:#8a8577"></span> Lab / base of operations</div>
+      </div>
+      <div class="sb-section">
+        <span class="lbl">Sites (9)</span>
+        <div id="siteList"></div>
+      </div>
+      <div class="sb-section">
+        <span class="lbl">Field kit</span>
+        <ul class="materials-list" id="materialsList"></ul>
       </div>
     </div>
+    <div class="sb-foot">
+      Site pins are set from the team's own dropped-pin screenshots (Google Maps satellite view), converted to GPS using each screenshot's scale bar and a nearby known landmark (Bronx River Gate, Rockefeller Fountain, Parking Lot A, Children's Zoo) as an anchor. Riverwalk, Twin Dams, and Birding Pond are the most confident (anchored directly against Bronx River Gate / Rockefeller Fountain visible in-frame); Dino Safari and Tree Tops are lower-confidence since no exact landmark shared their frame. Base layer: Esri World Imagery satellite.
+    </div>
+  </div>
+
+  <!-- SITE DATA PANEL -->
+  <div id="panelWrap">
+    <div id="panel"></div>
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const TC={bio:"#9b59b6",crime:"#c0392b",arrest:"#2471a3",escape:"#d35400",trial:"#1e8449"};
-const TL={bio:"Background",crime:"Murder / Crime",arrest:"Arrest",escape:"Escape",trial:"Trial / Execution"};
-
-const events=[
+/* ================= DATA ================= */
+// Aggregated directly from "Copy_of_Riparian_Habitat_and_eDNA_Data_Sheets.xlsx"
+// Coordinates for Africa Lab, Riverwalk, Twin Dams, Birding Pond, Tree Tops, Dino Safari, and
+// Asia Parking are set from the user's own dropped-pin screenshots (Google Maps satellite view),
+// converted to GPS using each screenshot's scale bar plus a nearby known landmark (Bronx River
+// Gate, Rockefeller Fountain, Parking Lot A, Children's Zoo) as an anchor. eDNA Lab and
+// Education Office were not re-pinned and still use earlier landmark-based estimates.
+const SITES = [
   {
-    id:0,year:"Nov 24, 1946",title:"Birth",location:"Burlington, Vermont",lat:44.4759,lng:-73.2121,type:"bio",
-    facts:["Born Theodore Robert Cowell, Burlington, Vermont","Mother was unmarried, born in a home for unwed mothers","Father was never officially identified","Raised believing his grandparents were his parents","Told his own mother was his older sister, family kept the truth hidden"]
+    id:'africa-lab', name:'Africa Lab', kind:'base',
+    lat:40.8518, lng:-73.8801,
+    blurb:"Home base for the mentee cohort -- morning check-ins, lunch, data entry, lectures, and the closing circle happen here every field day.",
   },
   {
-    id:1,year:"1946–1965",title:"Childhood & Early Life",location:"Tacoma, Washington",lat:47.2529,lng:-122.4443,type:"bio",
-    facts:["Age 4: family moved to Tacoma, Washington","Mother married Johnnie Bundy, Ted took his last name","Appeared completely normal to everyone around him, charming, polite, smart","Age 3: placed kitchen knives around his sleeping cousin and stood over her smiling","Showed early signs of antisocial personality disorder, could fake emotions but felt nothing","Described himself as feeling like an outsider despite appearing outgoing"]
+    id:'edna-lab', name:'eDNA Lab', kind:'base',
+    lat:40.8502, lng:-73.8785,
+    blurb:"Molecular bench: filter pooling, DNA extraction, 1:10 dilutions, PCR setup and thermocycling, gel electrophoresis, and sequencing prep happen here (week of 7/28).",
   },
   {
-    id:2,year:"1965–1973",title:"Teen & College Years",location:"Seattle, Washington",lat:47.6562,lng:-122.3087,type:"bio",
-    facts:["Attended University of Washington, degree in Psychology","Worked on a Republican governor's campaign, politically connected","Volunteered at a suicide prevention hotline (ironic given what came later)","Briefly studied law, later used this to represent himself in court","Everyone who knew him said they never suspected anything"]
+    id:'riverwalk', name:'Riverwalk', kind:'water+veg+ct',
+    lat:40.8546, lng:-73.8767,
+    blurb:"The Mitsubishi Riverwalk along the Bronx River -- the most heavily sampled site in the project: water testing, eDNA collection, vegetation transects, and the densest camera-trap deployment.",
+    veg:{n_transects:8,avg_canopy_pct:56.2,avg_understory_pct:29.4,avg_impervious_pct:17.2,avg_leaflitter_pct:40.2,avg_other_pct:13.7,avg_temp_C:32.0,weather:["Sunny"],dates:["2026-07-15"],observers:["Morgan","Shamsia"]},
+    edna:{n_samples:8,avg_water_temp_C:22.1,avg_pH:7.12,avg_turbidity_JTU:3.1,avg_salinity_ppt:0.84,avg_ammonia_ppm:0.12,avg_co2_ppm:6.4,red_eared_slider_detected:false,painted_turtle_detected:false,snapping_turtle_detected:true,dates:["07/08","07/09","07/14","07/15","07/16","07/21","07/22","07/23"],observers:["Analia","Morgan","Shamsia"]},
+    ct:{n_captures:29,species_counts:{"squirrel":11,"unidentified":9,"robin":4,"blue jay":1,"house sparrow":1,"northern flicker":1,"grey catbird":1,"chipmunk":1},dates_range:["2026-07-08","2026-07-22"],observers:["Analia","Shamsia"]}
   },
   {
-    id:3,year:"Jan–Nov 1974",title:"First Known Murders",location:"Seattle, WA",lat:47.6062,lng:-122.3321,type:"crime",
-    facts:["Jan 4, 1974: attacked Joni Lenz (21) with a metal rod while she slept, survived with permanent brain damage","Feb 1, 1974: murdered Linda Ann Healy, first confirmed murder","Method: faked a broken arm, asked women for help, then attacked them once isolated","By late 1974: at least 7 women missing from WA and OR, all college-aged, long dark hair"],
-    forensic:[
-      {label:"Fingerprint Analysis",text:"Prints lifted from scenes, not yet matched to Bundy, but preserved for later use."},
-      {label:"Tire Track Impressions",text:"Witnesses described a VW Beetle near abduction sites. Plaster casts of tire tracks were made and later matched to Bundy's car."},
-      {label:"Microscopic Hair Analysis",text:"Hair from recovery sites examined under microscopes, analysts compared shaft diameter, pigmentation, and surface pattern to identify possible sources."},
-      {label:"Composite Sketch",text:"Forensic artists combined witness descriptions into a suspect sketch, one of the first major composite uses in a serial killer case. First name 'Ted' entered the case."},
-      {label:"Retroactive DNA (Modern)",text:"Decades later, a male DNA profile was extracted from preserved evidence using modern STR profiling, definitively confirming Bundy's guilt."}
-    ],
-    victims:["Joni Lenz, survived, permanent brain damage","Linda Ann Healy","Donna Manson","Susan Rancourt","Roberta Parks","Brenda Ball","Georgeann Hawkins"]
+    id:'twin-dams', name:'Twin Dams', kind:'water+veg+ct',
+    lat:40.8541, lng:-73.8744,
+    blurb:"Historic mill dams on the Bronx River -- a small, shallow site (only 2 transects fit) that's sampled for water chemistry, eDNA, and one camera trap.",
+    veg:{n_transects:2,avg_canopy_pct:87.5,avg_understory_pct:26.6,avg_impervious_pct:0.0,avg_leaflitter_pct:37.1,avg_other_pct:36.1,avg_temp_C:28.0,weather:["Sunny"],dates:["2026-07-09"],observers:["Analia"]},
+    edna:{n_samples:8,avg_water_temp_C:22.8,avg_pH:7.19,avg_turbidity_JTU:4.4,avg_salinity_ppt:0.97,avg_ammonia_ppm:0.12,avg_co2_ppm:5.9,red_eared_slider_detected:false,painted_turtle_detected:false,snapping_turtle_detected:true,dates:["07/08","07/09","07/14","07/15","07/16","07/21","07/22","07/23"],observers:["Analia","Morgan","Shamsia"]},
+    ct:{n_captures:1,species_counts:{"unidentified":1},dates_range:["2026-07-17","2026-07-17"],observers:["Bella S"]}
   },
   {
-    id:4,year:"Jul 14, 1974",title:"Lake Sammamish Abductions",location:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810,type:"crime",
-    facts:["Crowded public beach, broad daylight, hundreds of witnesses","Introduced himself as 'Ted,' wore arm sling, asked for help with his sailboat","Abducted TWO women in the same afternoon, hours apart","First time police had a first name, physical description, and 100+ witnesses"],
-    forensic:[
-      {label:"Eyewitness Composite",text:"100+ witnesses interviewed. Descriptions independently matched, resulting in the most detailed composite of the case."},
-      {label:"Microscopic Hair & Fiber",text:"Hair cuticle pattern, cortex structure, and pigmentation analyzed. Fiber weave and dye composition examined at recovery site."},
-      {label:"Forensic Anthropology",text:"Skeletal remains identified through dental records, forensic anthropologists determined sex, age range, and height from bone structure."},
-      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval, how long since death."},
-      {label:"Retroactive DNA",text:"Modern genealogy databases later used to link biological evidence to Bundy and identify additional cold-case victims."}
-    ],
-    victims:["Janice Ott","Denise Naslund"]
+    id:'birding-pond', name:'Birding Pond', kind:'water',
+    lat:40.8543, lng:-73.8739,
+    blurb:"A still-water pond sampled only for water chemistry and eDNA -- no vegetation transects or camera traps were run here.",
+    edna:{n_samples:8,avg_water_temp_C:17.6,avg_pH:7.12,avg_turbidity_JTU:0.0,avg_salinity_ppt:1.06,avg_ammonia_ppm:0.10,avg_co2_ppm:9.2,red_eared_slider_detected:false,painted_turtle_detected:false,snapping_turtle_detected:true,dates:["07/08","07/09","07/14","07/15","07/16","07/21","07/22","07/23"],observers:["Analia","Morgan","Shamsia"]}
   },
   {
-    id:5,year:"1974–1975",title:"Utah & Colorado Murders",location:"Salt Lake City, UT",lat:40.7608,lng:-111.8910,type:"crime",
-    facts:["Moved to University of Utah Law School, continued killing while enrolled","Targeted ski resorts, college campuses, and shopping centers","At least 9 more murders across Utah, Colorado, and Idaho","Youngest victim: Lynette Culver, age 12, Pocatello, Idaho","Law enforcement in different states didn't yet know they were hunting the same man"],
-    forensic:[
-      {label:"FBI Criminal Profiling (First Ever)",text:"FBI's new Behavioral Science Unit (BSU) built one of the first formal criminal profiles in history, intelligent, charming, organized white male, mid-20s to 30s, uses a vehicle."},
-      {label:"Cross-State Evidence Sharing",text:"Physical evidence shared across state lines, hair, bite marks, tire tracks. This cooperation eventually led to creation of the FBI's ViCAP system."},
-      {label:"Soil & Pollen Analysis",text:"Trace soil and pollen on victims' clothing linked them to specific locations connected to Bundy's movements."},
-      {label:"Blood Typing (ABO)",text:"Before DNA testing existed, ABO blood group typing was the primary biological evidence method available."},
-      {label:"Blunt Force Autopsy",text:"No defensive wounds found, confirmed victims were unconscious or asleep when attacked. Injury pattern matched a smooth cylindrical weapon."}
-    ],
-    victims:["Nancy Wilcox","Melissa Smith","Laura Aime","Debra Kent","Caryn Campbell","Julie Cunningham","Denise Oliverson","Lynette Culver, age 12","Susan Curtis"]
+    id:'education-office', name:'Education Office', kind:'veg',
+    lat:40.8515, lng:-73.8774,
+    blurb:"Vegetation-only site -- 4 transects run in a single morning, plus the base for camera-trap setup runs to Dino Safari and Tree Tops.",
+    veg:{n_transects:4,avg_canopy_pct:81.2,avg_understory_pct:54.8,avg_impervious_pct:0.0,avg_leaflitter_pct:46.3,avg_other_pct:0.6,avg_temp_C:29.0,weather:["Sunny"],dates:["2026-07-14"],observers:["Shamsia"]}
   },
   {
-    id:6,year:"Aug 16, 1975",title:"First Arrest",location:"Salt Lake City, UT",lat:40.7128,lng:-111.9000,type:"arrest",
-    facts:["Officer Bob Hayward pulled over a VW Beetle driving without headlights at night","Inside: ski mask, handcuffs, rope, wire, ice pick, a full kidnapping kit","Bundy claimed he found it all in a dumpster","Victim Carol DaRonch identified him in a police lineup","Convicted of kidnapping, sentenced to 1–15 years"],
-    forensic:[
-      {label:"Physical Evidence Inventory",text:"Every item photographed and catalogued. Handcuffs matched the type DaRonch described, she had been cuffed before escaping."},
-      {label:"Forensic Lineup",text:"Carol DaRonch picked Bundy from a live 6-person lineup, standard eyewitness identification procedure. Became cornerstone of prosecution."},
-      {label:"Fiber Comparison",text:"Carpet fibers from Bundy's VW Beetle compared microscopically to fibers on DaRonch's clothing, characteristics were consistent."},
-      {label:"Tire Track Correlation",text:"Crime scene tire impressions from Utah and Washington re-examined after arrest, multiple impressions matched Bundy's VW Beetle tires."}
-    ],
-    victims:["Carol DaRonch, survived, kidnapping victim"]
+    id:'dino-safari', name:'Dino Safari', kind:'veg+ct',
+    lat:40.8578, lng:-73.8797,
+    blurb:"Wooded animatronic-dinosaur trail -- used for vegetation transects and a camera trap that mostly picked up raccoons and an unexpected house cat.",
+    veg:{n_transects:6,avg_canopy_pct:75.0,avg_understory_pct:37.2,avg_impervious_pct:0.0,avg_leaflitter_pct:59.8,avg_other_pct:3.0,avg_temp_C:25.0,weather:["Cloudy"],dates:["2026-07-21"],observers:["Shamsia"]},
+    ct:{n_captures:7,species_counts:{"racoon":2,"unidentified":2,"robin":1,"squirrel":1,"cat":1},dates_range:["2026-07-10","2026-07-17"],observers:["David"]}
   },
   {
-    id:7,year:"Jun 7, 1977",title:"Escape #1, Courthouse Jump",location:"Aspen, CO",lat:39.1911,lng:-106.8175,type:"escape",
-    facts:["Allowed to use courthouse law library for his own defense, left alone","Opened a second-floor window and jumped ~25 feet to the street","Sprained ankle on landing, fled into the mountains","Survived 8 days alone before being caught 6 miles from Aspen","Recaptured thin, hypothermic, and disoriented"],
-    forensic:[
-      {label:"Medical Documentation",text:"Full physical exam after recapture, documented weight loss, ankle injury, and exposure. Used in security risk assessment."},
-      {label:"Escape Route Reconstruction",text:"Scuff marks on windowsill, broken vegetation below, and soil footprints documented to establish exactly how he escaped."},
-      {label:"Correctional Science Impact",text:"Led to nationwide changes in how dangerous prisoners are supervised in courthouses, protocols developed in response are still used today."}
-    ]
+    id:'tree-tops', name:'Tree Tops', kind:'veg+ct',
+    lat:40.8536, lng:-73.8768,
+    blurb:"Canopy-adventure area on the Asia side of the zoo -- dense canopy cover and a small, mostly-squirrel camera trap record.",
+    veg:{n_transects:4,avg_canopy_pct:81.2,avg_understory_pct:36.1,avg_impervious_pct:0.0,avg_leaflitter_pct:63.6,avg_other_pct:1.3,avg_temp_C:27.0,weather:["Sunny"],dates:["2026-07-22"],observers:["Morgan"]},
+    ct:{n_captures:6,species_counts:{"squirrel":3,"unidentified":2,"bird":1},dates_range:["2026-07-16","2026-07-19"],observers:["David","Paula"]}
   },
   {
-    id:8,year:"Dec 30, 1977",title:"Escape #2, Ceiling Crawl",location:"Glenwood Springs, CO",lat:39.5505,lng:-107.3248,type:"escape",
-    facts:["Deliberately lost 35 lbs over months to fit through a small ceiling hole","Smuggled in a hacksaw blade, cut through ceiling over several weeks","Timed cutting to Christmas party noise to avoid detection","Dropped into a guard's empty apartment, changed clothes, walked out the front door","Not discovered missing for 15 hours, made it to Tallahassee, Florida"],
-    forensic:[
-      {label:"Cell Forensic Analysis",text:"Ceiling showed cuts made over weeks to months. Hacksaw blade had heavy wear from repeated use. Metal shavings hidden under his mattress."},
-      {label:"Weight Loss Documentation",text:"Prison medical records showed a dramatic deliberate drop in weight, evidence of long-term escape planning that staff had not flagged as a security risk."},
-      {label:"Correctional Science Impact",text:"Permanently changed how U.S. jails inspect cells, detect contraband, and monitor inmate weight, now standard protocols nationwide."}
-    ]
+    id:'asia-parking', name:'Asia Parking', kind:'veg+ct',
+    lat:40.8461, lng:-73.8759,
+    blurb:"The busiest camera-trap site in the whole project -- 33 captures including two coyote sightings, a peacock, and a bunny, alongside 4 vegetation transects.",
+    veg:{n_transects:4,avg_canopy_pct:50.0,avg_understory_pct:27.5,avg_impervious_pct:0.0,avg_leaflitter_pct:70.7,avg_other_pct:1.4,avg_temp_C:27.0,weather:["Sunny"],dates:["2026-07-23"],observers:["Analia"]},
+    ct:{n_captures:33,species_counts:{"squirrel":13,"robin":11,"unidentified":2,"coyote":2,"racoon":2,"northern flicker":1,"bunny":1,"peacock":1},dates_range:["2026-07-17","2026-07-23"],observers:["David","Paula"]}
   },
-  {
-    id:9,year:"Jan 15, 1978",title:"Chi Omega Sorority Attack",location:"Tallahassee, FL",lat:30.4383,lng:-84.2807,type:"crime",
-    facts:["3:00 AM, broke into Chi Omega sorority house, FSU","Under 15 minutes, attacked 4 sleeping women with a piece of oak firewood","2 murdered, 2 survived with serious injuries","Walked 8 blocks and attacked a 5th woman, survived with permanent hearing loss","Bite marks left on victim Lisa Levy = most important forensic evidence in US court history"],
-    forensic:[
-      {label:"Forensic Odontology, Bite Mark",text:"Dr. Souviron photographed and cast bite marks on Lisa Levy. He compared them to Bundy's dental mold using overlays, unique chipped tooth and double-bite pattern matched exactly."},
-      {label:"Critical Complication",text:"Original tissue sample accidentally destroyed during analysis. The entire case rested on photographs taken beforehand, defense attacked this heavily at trial."},
-      {label:"Blunt Force Trauma",text:"No defensive wounds, all victims attacked while unconscious. Injury pattern matched a smooth cylindrical hardwood object ~1.5 inches wide, struck from behind."},
-      {label:"Microscopic Hair Analysis",text:"Hair from a knotted pantyhose found at scene, cuticle pattern, pigment distribution, and medullary structure were consistent with Bundy's hair."},
-      {label:"Fiber Trace Evidence",text:"Pantyhose mask analyzed for fiber characteristics, consistent with Bundy's clothing under microscopic comparison."}
-    ],
-    victims:["Lisa Levy, murdered","Margaret Bowman, murdered","Karen Chandler, survived","Kathy Kleiner, survived","Cheryl Thomas, survived, permanent hearing loss"]
-  },
-  {
-    id:10,year:"Feb 9, 1978",title:"Murder of Kimberly Leach",location:"Lake City, FL",lat:30.1897,lng:-82.6382,type:"crime",
-    facts:["Abducted 12-year-old Kimberly Leach from outside her middle school, broad daylight","Multiple witnesses including a police officer saw a man matching Bundy's description","Body found 2 months later in a state park, 35 miles away","Youngest known victim, his final murder","Arrested 6 days later"],
-    forensic:[
-      {label:"Forensic Entomology",text:"Insect activity on remains used to estimate postmortem interval, findings were consistent with her disappearance date."},
-      {label:"Fiber Cross-Transfer",text:"White nylon fibers from Leach's clothing matched van carpet. Fibers from both Bundy's AND Leach's clothing found on the same carpet, proving both were in the van."},
-      {label:"Soil Comparison",text:"Soil from van's wheel wells matched the recovery site, placing the van there, not at Bundy's claimed locations."},
-      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's blood type, corroborated fiber and soil evidence."},
-      {label:"Eyewitness, Van ID",text:"An FSU fire marshal testified he saw Bundy leading a young girl matching Leach's description toward the white van on the morning she disappeared."}
-    ],
-    victims:["Kimberly Diane Leach, age 12, final known victim"]
-  },
-  {
-    id:11,year:"Feb 15, 1978",title:"Final Arrest, Pensacola",location:"Pensacola, FL",lat:30.4213,lng:-87.2169,type:"arrest",
-    facts:["Officer David Lee spotted a stolen VW Beetle driving erratically at 1:30 AM","Driver fled on foot, Lee tackled and arrested him","Gave a fake name: 'Kenneth Misner'","Fingerprint check confirmed identity within hours: Ted Bundy","During 46 days on the run after Escape #2: killed at least 3 more people"],
-    forensic:[
-      {label:"AFIS Fingerprint ID",text:"One of the first documented uses of AFIS (Automated Fingerprint Identification System) to unmask a suspect using a false identity, matched his prints to Utah arrest records."},
-      {label:"Vehicle Processing",text:"Stolen VW processed for fingerprints, trace hair, and fibers, results linked to both the Chi Omega and Leach crime scenes."},
-      {label:"Chain of Custody",text:"All evidence from arrest, clothing, personal items, vehicle, documented and preserved to maintain legal chain of custody for trial."}
-    ]
-  },
-  {
-    id:12,year:"Jul 31, 1979",title:"Chi Omega Trial",location:"Miami, FL",lat:25.7617,lng:-80.1918,type:"trial",
-    facts:["First criminal trial ever broadcast live on national TV","Bundy represented himself, created a media spectacle","Prosecution built case entirely around forensic odontology","Jury deliberated less than 7 hours"],
-    forensic:[
-      {label:"Dr. Souviron, Bite Mark",text:"Enlarged photos + dental cast overlays showed the bite pattern, unique chipped incisor and double-bite, matched Bundy's teeth. Testified: no reasonable doubt."},
-      {label:"Dr. Lowell Levine, Corroboration",text:"Second independent forensic odontologist reached the same conclusion, powerful corroborating expert testimony."},
-      {label:"Microscopic Hair",text:"Analyst testified hairs from pantyhose mask were consistent with Bundy's, based on medullary index, pigment granules, and scale pattern."},
-      {label:"Eyewitness Nita Neary",text:"Sorority member saw a man leaving with a log the night of the attack, identified him in court as Bundy."}
-    ],
-    verdict:["<strong>Guilty</strong>, Two counts First-Degree Murder (Levy + Bowman)","<strong>Guilty</strong>, Two counts Attempted Murder, two counts Burglary","<strong>Sentence:</strong> Death by electric chair","<strong>Impact:</strong> Established forensic odontology as legally admissible in US courts, precedent still followed today"],
-    testimony:["<strong>Dr. Richard Souviron</strong>, Bite mark match","<strong>Dr. Lowell Levine</strong>, Corroborating odontology","<strong>Nita Neary</strong>, Eyewitness, saw Bundy leaving","<strong>Karen Chandler & Kathy Kleiner</strong>, Surviving victims","<strong>Forensic Hair Analyst</strong>, Pantyhose trace evidence","<strong>Medical Examiner</strong>, Cause of death, blunt force documentation"]
-  },
-  {
-    id:13,year:"Feb 1980",title:"Kimberly Leach Trial",location:"Orlando, FL",lat:28.5383,lng:-81.3792,type:"trial",
-    facts:["No eyewitness to the murder, no bite mark evidence","Case built entirely on physical and trace evidence","Prosecution called it a 'masterclass in circumstantial forensic science'","Bundy continued denying crimes publicly, while confessing privately to FBI"],
-    forensic:[
-      {label:"Fiber Cross-Transfer, Mary Hinson (FBI)",text:"FBI analyst testified fibers from Leach's clothing matched the van carpet, and fibers from both Bundy's AND Leach's clothing found together, proving contact. Called it 'extremely probable' they were in the van together."},
-      {label:"Soil Comparison",text:"Van interior soil was inconsistent with Bundy's claimed locations but matched the Suwannee River recovery site, placing the van at the scene."},
-      {label:"Blood Typing",text:"Group B blood stains in van matched Leach's type, corroborated by fiber and soil evidence."},
-      {label:"Eyewitness Testimony",text:"FSU fire marshal testified he saw Bundy leading a girl matching Leach's description toward the white van at her school the morning she disappeared."}
-    ],
-    verdict:["<strong>Guilty</strong>, First-Degree Murder, Kimberly Diane Leach","<strong>Sentence:</strong> Death by electric chair, Bundy's 3rd death sentence","<strong>Impact:</strong> Set precedent for fiber cross-transfer as a standard forensic prosecution tool"],
-    testimony:["<strong>Mary Hinson (FBI)</strong>, Fiber cross-transfer analysis","<strong>Forensic Soil Analyst</strong>, Van soil vs. crime scene","<strong>FSU Fire Marshal</strong>, Eyewitness, van identification","<strong>Medical Examiner</strong>, Cause of death & postmortem interval","<strong>Forensic Entomologist</strong>, Insect evidence for time of death","<strong>Law Enforcement</strong>, Chain of custody for all physical evidence"]
-  },
-  {
-    id:14,year:"Jan 24, 1989",title:"Execution",location:"Florida State Prison, Starke",lat:29.9432,lng:-82.1101,type:"trial",
-    facts:["Night before execution: confessed to 30 murders to FBI Agent William Hagmaier","Experts believe real total exceeds 100","Jan 24, 1989 at 7:06 AM: executed by electric chair","Age 42, Florida State Prison, Starke","~200 people gathered outside, many cheering"],
-    forensic:[
-      {label:"Post-Execution DNA Work",text:"Modern STR DNA profiling applied retroactively to preserved biological evidence, reopened dozens of cold cases and helped identify additional victims."},
-      {label:"Bite Mark Precedent (Lasting)",text:"Chi Omega trial permanently codified bite mark evidence in American courts, still referenced in forensic odontology today."},
-      {label:"FBI Behavioral Science Unit",text:"Criminal profiling techniques developed during Bundy's case were formalized into BSU methodology, still used to profile serial offenders."},
-      {label:"AFIS Expansion",text:"His final arrest helped accelerate national expansion and standardization of fingerprint database technology across the US."},
-      {label:"ViCAP Created (1985)",text:"FBI's Violent Criminal Apprehension Program created directly in response to cases like Bundy's, enables cross-state tracking of serial violent crimes."},
-      {label:"Legislative Impact",text:"Missing Children Act of 1982 and the National Center for Missing & Exploited Children (NCMEC, 1984) both created in direct response to Bundy's crimes."}
-    ],
-    victims:["30 confessed. Estimated 100+. Only ~20 victims ever positively identified."]
-  }
 ];
 
-const murders=[
-  {name:"Joni Lenz",date:"Jan 4, 1974",loc:"Seattle, WA",lat:47.6062,lng:-122.3321,note:"Survived, permanent brain damage"},
-  {name:"Linda Ann Healy",date:"Feb 1, 1974",loc:"Seattle, WA",lat:47.6588,lng:-122.3103},
-  {name:"Donna Manson",date:"Mar 12, 1974",loc:"Olympia, WA",lat:47.0379,lng:-122.9007},
-  {name:"Susan Rancourt",date:"Apr 17, 1974",loc:"Ellensburg, WA",lat:46.9965,lng:-120.5478},
-  {name:"Roberta Parks",date:"May 6, 1974",loc:"Corvallis, OR",lat:44.5646,lng:-123.2620},
-  {name:"Brenda Ball",date:"Jun 1, 1974",loc:"Burien, WA",lat:47.4760,lng:-122.3465},
-  {name:"Georgeann Hawkins",date:"Jun 11, 1974",loc:"Seattle, WA",lat:47.6553,lng:-122.3035},
-  {name:"Janice Ott",date:"Jul 14, 1974",loc:"Lake Sammamish, WA",lat:47.5707,lng:-122.0810},
-  {name:"Denise Naslund",date:"Jul 14, 1974",loc:"Lake Sammamish, WA",lat:47.5690,lng:-122.0795},
-  {name:"Nancy Wilcox",date:"Oct 2, 1974",loc:"Holladay, UT",lat:40.6677,lng:-111.8288},
-  {name:"Melissa Smith",date:"Oct 18, 1974",loc:"Midvale, UT",lat:40.6113,lng:-111.8997},
-  {name:"Laura Aime",date:"Oct 31, 1974",loc:"Lehi, UT",lat:40.3916,lng:-111.8508},
-  {name:"Debra Kent",date:"Nov 8, 1974",loc:"Bountiful, UT",lat:40.8893,lng:-111.8808},
-  {name:"Caryn Campbell",date:"Jan 12, 1975",loc:"Snowmass Village, CO",lat:39.2083,lng:-106.9378},
-  {name:"Julie Cunningham",date:"Mar 15, 1975",loc:"Vail, CO",lat:39.6433,lng:-106.3781},
-  {name:"Denise Oliverson",date:"Apr 6, 1975",loc:"Grand Junction, CO",lat:39.0639,lng:-108.5506},
-  {name:"Lynette Culver",date:"May 6, 1975",loc:"Pocatello, ID",lat:42.8713,lng:-112.4455,note:"Age 12, youngest confirmed victim"},
-  {name:"Susan Curtis",date:"Jun 28, 1975",loc:"Provo, UT",lat:40.2338,lng:-111.6585},
-  {name:"Unknown Victim #1",date:"1974",loc:"Oregon",lat:44.1,lng:-121.5},
-  {name:"Unknown Victim #2",date:"1974",loc:"Washington",lat:47.2,lng:-121.8},
-  {name:"Unknown Victim #3",date:"1975",loc:"Colorado",lat:39.5,lng:-105.7},
-  {name:"Unknown Victim #4",date:"1975",loc:"Utah",lat:40.5,lng:-111.5},
-  {name:"Unknown Victim #5",date:"1975",loc:"Idaho",lat:43.5,lng:-114.0},
-  {name:"Unknown Victim #6",date:"1976",loc:"Florida",lat:30.2,lng:-85.0},
-  {name:"Lisa Levy",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4420,lng:-84.2968},
-  {name:"Margaret Bowman",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4410,lng:-84.2975},
-  {name:"Cheryl Thomas",date:"Jan 15, 1978",loc:"Tallahassee, FL",lat:30.4400,lng:-84.2900,note:"Survived, permanent hearing loss"},
-  {name:"Kimberly Leach",date:"Feb 9, 1978",loc:"Lake City, FL",lat:30.1897,lng:-82.6382,note:"Age 12, final known victim"},
-  {name:"Unknown Victim #7",date:"1978",loc:"Florida",lat:29.8,lng:-82.3},
-  {name:"Unknown Victim #8",date:"1978",loc:"Florida",lat:30.5,lng:-84.5},
+const MATERIALS = [
+  {qty:2, item:'Transect Tape'}, {qty:4, item:'Flags'}, {qty:4, item:'Data Sheets'},
+  {qty:2, item:'SD Cards'}, {qty:3, item:'Ziploc Bags'}, {qty:3, item:'Water Testing Containers'},
+  {qty:4, item:'Pairs of Gloves'}, {qty:1, item:'Thermometer'}, {qty:3, item:'Buckets'},
+  {qty:1, item:'SAMM'}, {qty:3, item:'SAMM Filters'}, {qty:1, item:'Sharpie'},
 ];
 
-let map,evMk={},activeId=null,tlOpen=false,mapInited=false,sourcesOpen=false;
-
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
-
-function goDramatic(){
-  showScreen('dramaticScreen');
-  const ds=document.getElementById('dramaticScreen');
-  setTimeout(()=>ds.classList.add('fade-in'),50);
-  const show=(id,delay,prop,val)=>setTimeout(()=>{const e=document.getElementById(id);e.style.transition=`${prop} 1.2s ease`;e.style[prop]=val;},delay);
-  show('de',400,'opacity','1');show('ds',1300,'opacity','1');
-  setTimeout(()=>{const r=document.getElementById('dr');r.style.transition='width 1.2s ease';r.style.width='70px';},2700);
-  show('db',3800,'opacity','1');
+const KIND_COLOR = {
+  'base':'#8a8577',
+  'water':'var(--river-light)',
+  'veg':'var(--moss)',
+  'veg+ct':'var(--moss)',
+  'water+veg+ct':'var(--river-light)',
+};
+function dotColorFor(kind){
+  if(kind==='base') return '#8a8577';
+  if(kind==='water') return '#3d7a96';
+  return '#3f5a43';
+}
+function flagColorFor(kind){
+  if(kind==='base') return '#8a8577';
+  if(kind.includes('water')) return '#1c4258';
+  return '#3f5a43';
 }
 
-function startApp(){showScreen('appScreen');if(!mapInited){setTimeout(initMap,80);mapInited=true;}}
+/* ================= MAP ================= */
+const map = L.map('map', {zoomControl:false, attributionControl:true, maxZoom:20}).setView([40.8505,-73.8765], 16);
+L.control.zoom({position:'bottomright'}).addTo(map);
 
-function initMap(){
-  map=L.map("map",{zoomControl:false,attributionControl:false}).setView([38.5,-96],4.5);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
-  L.control.zoom({position:"bottomright"}).addTo(map);
-  const latlngs=events.filter(e=>e.type!=='bio').map(ev=>[ev.lat,ev.lng]);
-  L.polyline(latlngs,{color:'#8b0000',weight:3,opacity:0.15,lineJoin:'round'}).addTo(map);
-  L.polyline(latlngs,{color:'#c0392b',weight:1.5,opacity:0.5,dashArray:'7 9',lineJoin:'round',className:'story-path'}).addTo(map);
-  murders.forEach(m=>{
-    const el=document.createElement("div");
-    el.style.cssText=`width:8px;height:8px;border-radius:50%;background:#c0392b;border:1.5px solid rgba(192,57,43,0.3);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 5px rgba(192,57,43,0.5);`;
-    el.onmouseenter=()=>{el.style.transform="scale(2)";el.style.boxShadow="0 0 10px rgba(192,57,43,0.8)";};
-    el.onmouseleave=()=>{el.style.transform="scale(1)";el.style.boxShadow="0 0 5px rgba(192,57,43,0.5)";};
-    const mk=L.marker([m.lat,m.lng],{icon:L.divIcon({html:el,className:"",iconSize:[8,8],iconAnchor:[4,4]})}).addTo(map);
-    mk.bindPopup(`<div class="mp-name">${m.name}</div><div class="mp-date">${m.date}</div><div style="font-size:9px;color:#888;margin-top:2px">${m.loc}</div>${m.note?`<div class="mp-note">${m.note}</div>`:''}`,{className:'murder-popup',maxWidth:200,offset:[0,-4]});
+// High-resolution satellite imagery
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom:20, maxNativeZoom:19,
+  attribution:'Tiles &copy; Esri -- Source: Esri, Maxar, Earthstar Geographics, GIS User Community'
+}).addTo(map);
+
+// Detail-tuned reference/label overlay (built to sit on top of satellite imagery, unlike the
+// coarse boundaries-only layer used before -- this actually resolves paths/labels at zoo-level zoom)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places_Detail/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom:20, maxNativeZoom:19, opacity:0.9
+}).addTo(map);
+
+function makeIcon(kind){
+  const color = flagColorFor(kind);
+  const html = `<div class="flagpin"><div class="pole"></div><div class="flag" style="--c:${color}"></div><div class="base"></div></div>`;
+  return L.divIcon({html, className:'', iconSize:[26,34], iconAnchor:[13,32], popupAnchor:[0,-30]});
+}
+
+const markers = {};
+SITES.forEach(site=>{
+  const m = L.marker([site.lat, site.lng], {icon: makeIcon(site.kind)}).addTo(map);
+  m.bindPopup(`<b>${site.name}</b><br>${site.blurb}`);
+  m.on('click', ()=>openPanel(site.id));
+  markers[site.id] = m;
+});
+
+// dashed line tracing the Bronx River sampling corridor (twin dams -> birding pond -> riverwalk,
+// following the river's north-to-south flow through this stretch of the zoo)
+const riverCorridor = ['twin-dams','birding-pond','riverwalk'].map(id=>{
+  const s = SITES.find(x=>x.id===id); return [s.lat, s.lng];
+});
+L.polyline(riverCorridor, {color:'#7fb2c9', weight:2, dashArray:'2 8', opacity:.85}).addTo(map);
+
+/* ================= SIDEBAR ================= */
+const siteListEl = document.getElementById('siteList');
+SITES.forEach(site=>{
+  const row = document.createElement('button');
+  row.className='site-row';
+  row.id='row-'+site.id;
+  const kindLabel = site.kind==='base' ? 'Lab / base' : site.kind.split('+').map(k=>({water:'eDNA',veg:'Vegetation',ct:'Camera trap'}[k]||k)).join(' · ');
+  row.innerHTML = `<span class="dot" style="background:${dotColorFor(site.kind)}"></span><span style="flex:1"><span>${site.name}</span><small>${kindLabel}</small></span>`;
+  row.addEventListener('click', ()=>{
+    map.flyTo([site.lat,site.lng], 18, {duration:.8});
+    openPanel(site.id);
   });
-  events.forEach(ev=>{
-    const el=document.createElement("div");const c=TC[ev.type];
-    el.style.cssText=`width:16px;height:16px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,0.2);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 8px ${c}88,0 2px 5px rgba(0,0,0,0.4);`;
-    el.onmouseenter=()=>{if(activeId!==ev.id)el.style.transform="scale(1.5)";};
-    el.onmouseleave=()=>{if(activeId!==ev.id)el.style.transform="scale(1)";};
-    const mk=L.marker([ev.lat,ev.lng],{icon:L.divIcon({html:el,className:"",iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
-    mk.on("click",()=>selectEv(ev.id));
-    evMk[ev.id]={marker:mk,el};
-  });
-  buildTL();
+  siteListEl.appendChild(row);
+});
+
+const materialsListEl = document.getElementById('materialsList');
+MATERIALS.forEach(m=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<span>${m.item}</span><span class="qty">×${m.qty}</span>`;
+  materialsListEl.appendChild(li);
+});
+
+document.getElementById('menuBtn').addEventListener('click', ()=>document.getElementById('sidebar').classList.add('open'));
+document.getElementById('closeSidebar').addEventListener('click', ()=>document.getElementById('sidebar').classList.remove('open'));
+
+/* ================= PANEL ================= */
+const panelWrap = document.getElementById('panelWrap');
+const panelEl = document.getElementById('panel');
+
+function barRow(label, valPct, colorVar, valLabel){
+  const pct = Math.max(0, Math.min(100, valPct));
+  return `<div class="barrow">
+    <div class="bl"><span>${label}</span><b>${valLabel!==undefined?valLabel:pct.toFixed(1)+'%'}</b></div>
+    <div class="bartrack"><div class="barfill" style="width:${pct}%;background:${colorVar}"></div></div>
+  </div>`;
 }
 
-function buildTL(){
-  const track=document.getElementById("tlTrack");
-  const spine=track.querySelector('.tl-spine');
-  track.innerHTML='';track.appendChild(spine);
-  events.forEach((ev,i)=>{
-    const above=i%2===0;const c=TC[ev.type];
-    const node=document.createElement("div");
-    node.className="tl-node "+(above?"above":"below");node.id="tln"+ev.id;
-    const card=document.createElement("div");card.className="tl-card";
-    const bd=document.createElement("div");bd.className="tl-card-body";
-    bd.innerHTML=`<div class="tl-card-type" style="color:${c}">${TL[ev.type]}</div><div class="tl-card-year">${ev.year}</div><div class="tl-card-name">${ev.title}</div><div class="tl-card-loc">${ev.location}</div>`;
-    card.appendChild(bd);
-    const conn=document.createElement("div");conn.className="tl-conn";
-    const dot=document.createElement("div");dot.className="tl-dot";
-    dot.style.cssText=`background:${c};box-shadow:0 0 6px ${c}88;border:2px solid rgba(30,30,30,0.9);`;
-    if(above){node.appendChild(card);node.appendChild(conn);node.appendChild(dot);}
-    else{node.appendChild(dot);node.appendChild(conn);node.appendChild(card);}
-    node.addEventListener("click",()=>selectEv(ev.id));
-    track.appendChild(node);
-  });
+function speciesBars(counts){
+  const max = Math.max(...Object.values(counts));
+  return Object.entries(counts).map(([sp,n])=>{
+    const pct = (n/max)*100;
+    const label = sp.replace(/\b\w/g, c=>c.toUpperCase());
+    return barRow(label, pct, 'var(--flag)', n+' capture'+(n>1?'s':''));
+  }).join('');
 }
 
-function mkBlock(cls,label,labelColor,innerHTML){
-  var styleAttr = labelColor ? ' style="color:'+labelColor+'"' : '';
-  return '<div class="det-block '+cls+'"><div class="det-block-label"'+styleAttr+'>'+label+'</div>'+innerHTML+'</div>';
-}
+function openPanel(id){
+  const s = SITES.find(x=>x.id===id);
+  document.querySelectorAll('.site-row').forEach(r=>r.classList.remove('active'));
+  const row = document.getElementById('row-'+id); if(row) row.classList.add('active');
 
-function ul(items,cls){
-  return`<ul class="${cls}">${items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
-}
+  const badges = [];
+  if(s.kind==='base') badges.push('Lab / Base');
+  if(s.kind.includes('water')) badges.push('eDNA site');
+  if(s.kind.includes('veg')) badges.push('Vegetation site');
+  if(s.kind.includes('ct')) badges.push('Camera trap');
 
-function buildDetailHTML(ev){
-  const c=TC[ev.type];
-  const hasRight=ev.forensic&&ev.forensic.length;
-  const hasVerdict=ev.verdict&&ev.verdict.length;
-  const hasTestimony=ev.testimony&&ev.testimony.length;
-  const hasVictims=ev.victims&&ev.victims.length;
+  let html = `<div class="p-head">
+    <button id="closePanel">✕</button>
+    <span class="kicker">Site File</span>
+    <h2>${s.name}</h2>
+    <div class="badges">${badges.map(b=>`<span class="badge">${b}</span>`).join('')}</div>
+  </div>
+  <div class="p-body">
+    <p style="font-size:13px;line-height:1.55;color:var(--ink);margin-top:16px;">${s.blurb}</p>`;
 
-  // Left column
-  let left='';
-  // Quick facts
-  if(ev.facts&&ev.facts.length){
-    left+=`<div class="det-block"><div class="det-block-label">Key Facts</div>${ul(ev.facts,'facts-list')}</div>`;
-  }
-  if(hasVictims){
-    left+=`<div class="det-block victim-block"><div class="det-block-label">Victims</div>${ul(ev.victims,'victim-list')}</div>`;
-  }
-  if(hasVerdict){
-    left+=`<div class="det-block verdict-block"><div class="det-block-label">Verdict & Sentence</div>${ul(ev.verdict,'verdict-list')}</div>`;
-  }
-  if(hasTestimony){
-    left+=`<div class="det-block testimony-block"><div class="det-block-label">Who Testified</div>${ul(ev.testimony,'testimony-list')}</div>`;
+  if(s.kind==='base'){
+    html += `<div class="empty-note">No transect, water, or camera-trap data is logged directly at this location -- it's a staging and lab site in the fieldwork schedule.</div>`;
   }
 
-  // Right column, forensics
-  let right='';
-  if(hasRight){
-    const items=ev.forensic.map(f=>`<li><span class="f-label">${f.label}</span><span class="f-text">${f.text}</span></li>`).join('');
-    right+=`<div class="det-block forensic-block"><div class="det-block-label">Forensic Science Used</div><ul class="forensic-list">${items}</ul></div>`;
+  if(s.veg){
+    const v = s.veg;
+    html += `<div class="datablock">
+      <div class="dh"><div class="ico" style="background:var(--moss)">🌿</div><h3>Vegetation transects</h3><span class="n">${v.n_transects} transects</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="v">${v.avg_temp_C}°C</div><div class="l">Avg. air temp</div></div>
+        <div class="stat"><div class="v">${v.weather.join('/')}</div><div class="l">Weather</div></div>
+      </div>
+      ${barRow('Canopy cover', v.avg_canopy_pct, 'var(--moss)')}
+      ${barRow('Understory (grass/shrub)', v.avg_understory_pct, '#6f8f5a')}
+      ${barRow('Leaf litter', v.avg_leaflitter_pct, '#a98650')}
+      ${barRow('Impervious surface', v.avg_impervious_pct, '#8a8577')}
+      ${barRow('Other (logs/rocks/chips)', v.avg_other_pct, '#5a4632')}
+      <div class="meta-row">Surveyed <b>${v.dates.join(', ')}</b> by <b>${v.observers.join(', ')}</b></div>
+    </div>`;
   }
 
-  if(!hasRight){
-    return`<div class="det-col" style="grid-column:1/-1">${left}</div>`;
+  if(s.edna){
+    const e = s.edna;
+    const detect = (val,label)=>`<div class="detect-row"><span>${label}</span><span class="pill ${val?'yes':'no'}">${val?'DETECTED':'not detected'}</span></div>`;
+    html += `<div class="datablock">
+      <div class="dh"><div class="ico" style="background:var(--river-light)">💧</div><h3>Water &amp; eDNA</h3><span class="n">${e.n_samples} samples</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="v">${e.avg_water_temp_C}°C</div><div class="l">Avg. water temp</div></div>
+        <div class="stat"><div class="v">${e.avg_pH}</div><div class="l">Avg. pH</div></div>
+        <div class="stat"><div class="v">${e.avg_turbidity_JTU}</div><div class="l">Turbidity (JTU)</div></div>
+        <div class="stat"><div class="v">${e.avg_salinity_ppt}</div><div class="l">Salinity (ppt)</div></div>
+        <div class="stat"><div class="v">${e.avg_ammonia_ppm}</div><div class="l">Ammonia (ppm)</div></div>
+        <div class="stat"><div class="v">${e.avg_co2_ppm}</div><div class="l">CO₂ (ppm)</div></div>
+      </div>
+      <div style="margin-top:8px;">
+        ${detect(e.red_eared_slider_detected,'Red-eared slider')}
+        ${detect(e.painted_turtle_detected,'Eastern painted turtle')}
+        ${detect(e.snapping_turtle_detected,'Common snapping turtle')}
+      </div>
+      <div class="meta-row">Sampled <b>${e.dates.join(', ')}</b> by <b>${e.observers.join(', ')}</b></div>
+      ${e.snapping_turtle_detected && !e.red_eared_slider_detected && !e.painted_turtle_detected ? '<div class="note">Snapping turtle eDNA reads positive on every sample at this site -- worth a lab re-check to rule out a standing contamination source before treating it as a confirmed population signal.</div>' : ''}
+    </div>`;
   }
-  return`<div class="det-col">${left}</div><div class="det-col">${right}</div>`;
-}
 
-function selectEv(id){
-  activeId=id;const ev=events.find(e=>e.id===id);const c=TC[ev.type];
-  Object.entries(evMk).forEach(([eid,m])=>{
-    const e=events.find(x=>x.id==eid);
-    m.el.style.transform="scale(1)";
-    m.el.style.boxShadow=`0 0 8px ${TC[e.type]}88,0 2px 5px rgba(0,0,0,0.4)`;
-  });
-  if(evMk[id]){evMk[id].el.style.transform="scale(2.2)";evMk[id].el.style.boxShadow=`0 0 18px ${c},0 0 32px ${c}55`;}
-  document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
-  const node=document.getElementById("tln"+id);
-  if(node){node.classList.add('sel');node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
-  document.getElementById("dType").textContent=TL[ev.type];
-  document.getElementById("dType").style.color=c;
-  document.getElementById("dTitle").textContent=ev.title;
-  document.getElementById("dMeta").textContent=ev.year+" · "+ev.location;
-  document.getElementById("detScroll").innerHTML=buildDetailHTML(ev);
-  document.getElementById("detCard").classList.add("visible");
-  if(map)map.flyTo([ev.lat,ev.lng],9,{duration:1.2});
-}
-
-function closeDet(){
-  document.getElementById("detCard").classList.remove("visible");activeId=null;
-  Object.entries(evMk).forEach(([,m])=>{m.el.style.transform="scale(1)";});
-  document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('sel'));
-}
-
-function toggleTL(){
-  tlOpen=!tlOpen;
-  const ov=document.getElementById("tlOverlay");const btn=document.getElementById("tlBtn");
-  if(tlOpen){
-    ov.classList.add('open');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      ov.classList.add('vis');
-      document.querySelectorAll('.tl-node').forEach((n,i)=>{setTimeout(()=>n.classList.add('show'),280+i*55);});
-    }));
-    btn.classList.add('on');
-  } else {
-    ov.classList.remove('vis');
-    document.querySelectorAll('.tl-node').forEach(n=>n.classList.remove('show'));
-    setTimeout(()=>ov.classList.remove('open'),400);btn.classList.remove('on');
+  if(s.ct){
+    const c = s.ct;
+    html += `<div class="datablock">
+      <div class="dh"><div class="ico" style="background:var(--flag)">📷</div><h3>Camera trap</h3><span class="n">${c.n_captures} captures</span></div>
+      ${speciesBars(c.species_counts)}
+      <div class="meta-row">Active <b>${c.dates_range[0]} → ${c.dates_range[1]}</b> · reviewed by <b>${c.observers.join(', ')}</b></div>
+    </div>`;
   }
+
+  html += `</div>`;
+  panelEl.innerHTML = html;
+  document.getElementById('closePanel').addEventListener('click', closePanel);
+  panelWrap.classList.add('open');
+}
+function closePanel(){
+  panelWrap.classList.remove('open');
+  document.querySelectorAll('.site-row').forEach(r=>r.classList.remove('active'));
 }
 
-function toggleSources(){
-  sourcesOpen=!sourcesOpen;
-  document.getElementById("sourcesPanel").classList.toggle("open",sourcesOpen);
-}
+// open sidebar by default on load (desktop), show intro
+if(window.innerWidth > 900){ document.getElementById('sidebar').classList.add('open'); }
 </script>
 </body>
 </html>
